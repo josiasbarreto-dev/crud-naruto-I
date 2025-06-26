@@ -51,7 +51,7 @@ public class PersonagensController {
         var jutsu = characterService.useJutsu(characterId, ninjaType);
         return ResponseEntity.ok(jutsu);
     }
-    @GetMapping("dodge/{characterId}")
+    @GetMapping("/dodge/{characterId}")
     public ResponseEntity<String> dodgeCharacter(
             @PathVariable("characterId") Long characterId,
             @RequestParam("ninjaType") NinjaType ninjaType) {
