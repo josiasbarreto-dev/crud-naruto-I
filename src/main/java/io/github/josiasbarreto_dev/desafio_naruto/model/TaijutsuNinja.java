@@ -13,10 +13,12 @@ public class TaijutsuNinja extends Character implements Ninja {
         super(id, name, age, village, jutsus, chakra, ninjaType);
     }
 
+    @Override
     public String useJutsu() {
         return "The character " + getName() + " unleashes a Taijutsu attack!";
     }
 
+    @Override
     public String dodge() {
         return "The attack was dodged using Taijutsu!";
     }
