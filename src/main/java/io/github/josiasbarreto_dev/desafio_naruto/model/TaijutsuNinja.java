@@ -1,6 +1,5 @@
 package io.github.josiasbarreto_dev.desafio_naruto.model;
 
-import io.github.josiasbarreto_dev.desafio_naruto.model.interfaces.Ninja;
 import jakarta.persistence.Entity;
 import lombok.NoArgsConstructor;
 
@@ -8,7 +7,7 @@ import java.util.ArrayList;
 
 @Entity
 @NoArgsConstructor
-public class TaijutsuNinja extends Character implements Ninja {
+public class TaijutsuNinja extends Character {
     public TaijutsuNinja(Long id, String name, int age, String village, ArrayList<String> jutsus, int chakra, NinjaType ninjaType) {
         super(id, name, age, village, jutsus, chakra, ninjaType);
     }

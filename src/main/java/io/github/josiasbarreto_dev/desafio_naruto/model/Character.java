@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import jakarta.persistence.*;
 
 @Entity
-public class Character{
+public abstract class Character{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -109,5 +109,8 @@ public class Character{
                 ", ninjaType=" + ninjaType +
                 '}';
     }
+
+    public abstract String useJutsu();
+    public abstract String dodge();
 }
 
