@@ -24,9 +24,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Controller Unit Tests")
-public class PersonagensControllerTest {
+public class CharacterControllerTest {
     @InjectMocks
-    private PersonagensController personagensController;
+    private CharacterController characterController;
 
     @Mock
     private CharacterService characterService;
@@ -136,7 +136,7 @@ public class PersonagensControllerTest {
     @DisplayName("Deve criar um Personagem e retornar o Status Code 201")
     void shouldCreatePersonAndReturnSuccess() {
         when(characterService.createCharacter(payloadRequestDTO)).thenReturn(payloadResponseDTO);
-        ResponseEntity<CharacterResponseDTO> response = personagensController.createCharacter(payloadRequestDTO);
+        ResponseEntity<CharacterResponseDTO> response = characterController.createCharacter(payloadRequestDTO);
 
         assertNotNull(response);
         assertEquals(payloadResponseDTO, response.getBody());
@@ -151,7 +151,7 @@ public class PersonagensControllerTest {
         when(characterService.createCharacter(payloadRequestWithNinjaTypeInvalid)).thenThrow(new IllegalArgumentException(message));
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            personagensController.createCharacter(payloadRequestWithNinjaTypeInvalid);
+            characterController.createCharacter(payloadRequestWithNinjaTypeInvalid);
         });
 
         assertEquals(message, exception.getMessage());
@@ -163,7 +163,7 @@ public class PersonagensControllerTest {
     void shouldAddNewJutsuToJutsuArrayAndReturnSuccess(){
         when(characterService.addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO)).thenReturn(payloadJutsuResponseDTO);
 
-        ResponseEntity<CharacterResponseDTO> response = personagensController.addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO);
+        ResponseEntity<CharacterResponseDTO> response = characterController.addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO);
 
         assertNotNull(response);
         assertEquals(payloadJutsuResponseDTO, response.getBody());
@@ -176,7 +176,7 @@ public class PersonagensControllerTest {
     void shouldAddNewChakraAndReturnSuccess(){
         when(characterService.increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO)).thenReturn(payloadChakraResponseDTO);
 
-        ResponseEntity<CharacterResponseDTO> response = personagensController.increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO);
+        ResponseEntity<CharacterResponseDTO> response = characterController.increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO);
 
         assertNotNull(response);
         assertEquals(payloadChakraResponseDTO, response.getBody());
@@ -191,7 +191,7 @@ public class PersonagensControllerTest {
 
         when(characterService.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = personagensController.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());
@@ -206,7 +206,7 @@ public class PersonagensControllerTest {
 
         when(characterService.useJutsu(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = personagensController.useJutsuCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.useJutsuCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());
@@ -221,7 +221,7 @@ public class PersonagensControllerTest {
 
         when(characterService.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = personagensController.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());

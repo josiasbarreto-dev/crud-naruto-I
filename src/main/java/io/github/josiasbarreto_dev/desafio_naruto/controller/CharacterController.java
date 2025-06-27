@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/character")
-public class PersonagensController {
+public class CharacterController {
     private final CharacterService characterService;
 
-    public PersonagensController(CharacterService characterService) {
+    public CharacterController(CharacterService characterService) {
         this.characterService = characterService;
     }
 
