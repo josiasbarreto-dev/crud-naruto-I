@@ -6,8 +6,10 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
-import io.github.josiasbarreto_dev.desafio_naruto.model.*;
-import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
+import io.github.josiasbarreto_dev.desafio_naruto.model.GenjutsuNinja;
+import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
+import io.github.josiasbarreto_dev.desafio_naruto.model.NinjutsuNinja;
+import io.github.josiasbarreto_dev.desafio_naruto.model.TaijutsuNinja;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.GenjutsuRepository;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.NinjutsuRepository;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.TaijutsuRepository;
@@ -46,7 +48,7 @@ public class CharacterService {
                 return mapper.toDTO(savedCharacterTaijutsu);
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 
@@ -68,7 +70,7 @@ public class CharacterService {
                 return mapper.toDTO(taijutsuRepository.save(characterTaijutsu));
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 
@@ -90,7 +92,7 @@ public class CharacterService {
                 return mapper.toDTO(taijutsuRepository.save(characterTaijutsu));
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 
@@ -109,7 +111,7 @@ public class CharacterService {
                 return characterTaijutsu.displayInfo();
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 
@@ -128,7 +130,7 @@ public class CharacterService {
                 return characterTaijutsu.useJutsu();
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 
@@ -147,7 +149,7 @@ public class CharacterService {
                 return characterTaijutsu.dodge();
 
             default:
-                return null;
+                throw new IllegalArgumentException("Ninja type is invalid");
         }
     }
 }
