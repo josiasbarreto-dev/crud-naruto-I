@@ -4,4 +4,5 @@ public enum NinjaType {
     GENJUTSU,
     NINJUTSU,
     TAIJUTSU,
+    INVALID_TYPE
 }
