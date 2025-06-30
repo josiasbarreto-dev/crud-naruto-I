@@ -134,7 +134,7 @@ public class CharacterControllerTest {
 
     @Test
     @DisplayName("Deve criar um Personagem e retornar o Status Code 201")
-    void shouldCreatePersonAndReturnSuccess() {
+    void shouldCreateCharacterAndReturnSuccess() {
         when(characterService.createCharacter(payloadRequestDTO)).thenReturn(payloadResponseDTO);
         ResponseEntity<CharacterResponseDTO> response = characterController.createCharacter(payloadRequestDTO);
 
