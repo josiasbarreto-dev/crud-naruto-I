@@ -40,7 +40,6 @@ public class CharacterControllerTest {
     private CharacterResponseDTO payloadChakraResponseDTO;
 
     private final Long VALID_CHARACTER_ID = 1L;
-    private final Long INVALID_CHARACTER_ID = 50L;
     private final NinjaType NINJA_TYPE = NinjaType.TAIJUTSU;
 
 
