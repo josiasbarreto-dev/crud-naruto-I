@@ -40,7 +40,7 @@ public class CharacterControllerTest {
     private CharacterResponseDTO payloadChakraResponseDTO;
 
     private final Long VALID_CHARACTER_ID = 1L;
-    private final NinjaType NINJA_TYPE = NinjaType.TAIJUTSU;
+    private final NinjaType NINJA_TYPE_TAIJUTSU = NinjaType.TAIJUTSU;
 
 
     @BeforeEach
@@ -56,7 +56,7 @@ public class CharacterControllerTest {
                         "Kurama Chakra Mode"
                 )),
                 1000,
-                NinjaType.TAIJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
 
         payloadRequestWithNinjaTypeInvalid = new CharacterRequestDTO(
@@ -70,7 +70,7 @@ public class CharacterControllerTest {
                         "Kurama Chakra Mode"
                 )),
                 1000,
-                NinjaType.TAIJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
 
         payloadResponseDTO = new CharacterResponseDTO(
@@ -85,7 +85,7 @@ public class CharacterControllerTest {
                         "Kurama Chakra Mode"
                 )),
                 1000,
-                NinjaType.TAIJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
 
         payloadJutsuRequestDTO = new JutsuRequestDTO(
@@ -95,7 +95,7 @@ public class CharacterControllerTest {
 
         payloadChakraRequestDTO = new ChakraRequestDTO(
                 500,
-                NinjaType.NINJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
 
 
@@ -112,7 +112,7 @@ public class CharacterControllerTest {
                         "Shouton"
                 )),
                 1000,
-                NinjaType.TAIJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
 
         payloadChakraResponseDTO = new CharacterResponseDTO(
@@ -127,7 +127,7 @@ public class CharacterControllerTest {
                         "Kurama Chakra Mode"
                 )),
                 1500,
-                NinjaType.NINJUTSU
+                NINJA_TYPE_TAIJUTSU
         );
     }
 
@@ -149,7 +149,7 @@ public class CharacterControllerTest {
         String message = "Ninja type is invalid";
         when(characterService.createCharacter(payloadRequestWithNinjaTypeInvalid)).thenThrow(new IllegalArgumentException(message));
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             characterController.createCharacter(payloadRequestWithNinjaTypeInvalid);
         });
 
@@ -188,14 +188,14 @@ public class CharacterControllerTest {
     void shouldReturnCharacterInfoAndOkStatus(){
         String expectedContent = "Character{id=1, name='Might Guy', age=30, village='Konohagakure', jutsus=[Eight Inner Gates, Chidori], chakra=1700, ninjaType=TAIJUTSU}";
 
-        when(characterService.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
+        when(characterService.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = characterController.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE);
+        verify(characterService, times(1)).getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
     }
 
     @Test
@@ -203,14 +203,14 @@ public class CharacterControllerTest {
     void shouldDisplayMessageWhenUsingJutsu(){
         String expectedContent = "The character Might Guy unleashes a Taijutsu attack!";
 
-        when(characterService.useJutsu(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
+        when(characterService.useJutsu(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = characterController.useJutsuCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.useJutsuCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).useJutsu(VALID_CHARACTER_ID, NINJA_TYPE);
+        verify(characterService, times(1)).useJutsu(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
     }
 
     @Test
@@ -218,14 +218,14 @@ public class CharacterControllerTest {
     void shouldDisplayDodgeMessage(){
         String expectedContent = "The attack was dodged using Taijutsu!";
 
-        when(characterService.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE)).thenReturn(expectedContent);
+        when(characterService.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
 
-        ResponseEntity<String> response = characterController.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
+        ResponseEntity<String> response = characterController.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
 
         assertNotNull(response);
         assertEquals(expectedContent, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE);
+        verify(characterService, times(1)).dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
     }
 
 }
