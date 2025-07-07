@@ -1,34 +1,25 @@
 package io.github.josiasbarreto_dev.desafio_naruto.model;
 
-import java.util.ArrayList;
-
 import jakarta.persistence.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Entity
+@Table(name = "character")
 public abstract class Character{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
-    private int age;
-    private String village;
-    private ArrayList<String> jutsus = new ArrayList<>();
-    private int chakra;
+    protected Long id;
+    protected String name;
+    protected Map<String, Jutsu> jutsus  = new HashMap<>();
+    protected int chakra = 100;
+    protected int life;
+    protected NinjaType ninjaType;
 
-    @Enumerated(EnumType.STRING)
-    private NinjaType ninjaType;
-
-    public Character() {
-    }
-
-    public Character(Long id, String name, int age, String village, ArrayList<String> jutsus, int chakra, NinjaType ninjaType) {
-        this.id = id;
+    public Character(String name, int life) {
         this.name = name;
-        this.age = age;
-        this.village = village;
-        this.jutsus = jutsus;
-        this.chakra = chakra;
-        this.ninjaType = ninjaType;
+        this.life = life;
     }
 
     public Long getId() {
@@ -47,28 +38,8 @@ public abstract class Character{
         this.name = name;
     }
 
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getVillage() {
-        return village;
-    }
-
-    public void setVillage(String village) {
-        this.village = village;
-    }
-
-    public ArrayList<String> getJutsus() {
+    public Map<String, Jutsu> getJutsus() {
         return jutsus;
-    }
-
-    public void setJutsus(ArrayList<String> jutsus) {
-        this.jutsus = jutsus;
     }
 
     public int getChakra() {
@@ -79,38 +50,33 @@ public abstract class Character{
         this.chakra = chakra;
     }
 
-    public boolean addJutsu(String jutsu) {
-        if (jutsus.contains(jutsu)) {
+    public int getLife() {
+        return life;
+    }
+
+    public void setLife(int life) {
+        this.life = life;
+    }
+
+    public boolean addJutsu(String name, Jutsu jutsu){
+        if (jutsus.putIfAbsent(name, jutsu) == null) {
+            System.out.println("Jutsu '" + name + "' added successfully!");
+            return true;
+        } else {
+            System.out.println("Jutsu '" + name + "' already exists in the map. Not added.");
             return false;
         }
-        return jutsus.add(jutsu);
     }
 
-    public NinjaType getNinjaType() {
-        return ninjaType;
+    public void loseLife(int damage){
+        this.life -= damage;
+        if(this.life < 0){
+            this.life = 0;
+        }
     }
 
-    public void setNinjaType(NinjaType ninjaType) {
-        this.ninjaType = ninjaType;
-    }
+    public abstract void useJutsu(String jutsuName, Character adversaryNinja);
+    public abstract void dodge(Jutsu jutsu);
 
-    public void increaseChakra(int amount){
-        this.chakra += amount;
-    }
-
-    public String displayInfo() {
-        return "Character{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", age=" + age +
-                ", village='" + village + '\'' +
-                ", jutsus=" + jutsus +
-                ", chakra=" + chakra +
-                ", ninjaType=" + ninjaType +
-                '}';
-    }
-
-    public abstract String useJutsu();
-    public abstract String dodge();
 }
 
