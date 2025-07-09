@@ -20,4 +20,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(NameAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleNameConflict(NameAlreadyExistsException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 409);
+        response.put("error", "Data Conflict");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
 }
