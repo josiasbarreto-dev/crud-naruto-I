@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 
 public interface CharacterServiceInterface {
+    @Transactional
     public CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO);
 
     public List<CharacterResponseDTO> listCharacter();
