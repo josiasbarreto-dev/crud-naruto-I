@@ -1,22 +1,18 @@
 package io.github.josiasbarreto_dev.desafio_naruto.model;
 
+import jakarta.persistence.*;
+
+@Embeddable
 public class Jutsu {
-    private String name;
     private int damage;
     private int chakraConsumption;
 
-    public Jutsu(String name, int damage, int chakraConsumption) {
-        this.name = name;
+    public Jutsu() {
+    }
+
+    public Jutsu(int damage, int chakraConsumption) {
         this.damage = damage;
         this.chakraConsumption = chakraConsumption;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getDamage() {
@@ -38,7 +34,6 @@ public class Jutsu {
     @Override
     public String toString() {
         return "Jutsu{" +
-                "name='" + name + '\'' +
                 ", damage=" + damage +
                 ", chakraConsumption=" + chakraConsumption +
                 '}';
