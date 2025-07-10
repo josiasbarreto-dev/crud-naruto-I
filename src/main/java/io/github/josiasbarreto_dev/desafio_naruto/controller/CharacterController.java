@@ -1,14 +1,14 @@
 package io.github.josiasbarreto_dev.desafio_naruto.controller;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.ChakraRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.*;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import io.github.josiasbarreto_dev.desafio_naruto.service.CharacterService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/character")
@@ -25,37 +25,39 @@ public class CharacterController {
         return ResponseEntity.status(HttpStatus.CREATED).body(character);
     }
 
-    @PatchMapping("/{characterId}/add-jutsu")
-    public ResponseEntity<CharacterResponseDTO> addNewJutsu(@PathVariable("characterId") Long characterId, @RequestBody JutsuRequestDTO dto) {
-        var character = characterService.addNewJutsu(characterId, dto);
-        return ResponseEntity.ok(character);
+    @GetMapping
+    public ResponseEntity<List<CharacterResponseDTO>> listCharacter() {
+        var listCharacter = characterService.listCharacter();
+        return ResponseEntity.ok(listCharacter);
     }
 
-    @PatchMapping("/{characterId}")
-    public ResponseEntity<CharacterResponseDTO> increaseChakra(@PathVariable("characterId") Long characterId, @RequestBody ChakraRequestDTO chakraDTO){
-        return ResponseEntity.ok(characterService.increaseChakra(characterId, chakraDTO));
-    }
-
-    @GetMapping("/info/{characterId}")
-    public ResponseEntity<String> getDisplayInfo(
-            @PathVariable("characterId") Long characterId,
-            @RequestParam("ninjaType") NinjaType ninjaType) {
-        var characterInfo = characterService.getDisplayInfo(characterId, ninjaType);
+    @GetMapping("/{characterId}")
+    public ResponseEntity<Character> getCharacterById(@PathVariable Long characterId) {
+        var characterInfo = characterService.getCharacterById(characterId);
         return ResponseEntity.ok(characterInfo);
     }
 
-    @GetMapping("/jutsu/{characterId}")
-    public ResponseEntity<String> useJutsuCharacter(
-            @PathVariable("characterId") Long characterId,
-            @RequestParam("ninjaType") NinjaType ninjaType) {
-        var jutsu = characterService.useJutsu(characterId, ninjaType);
-        return ResponseEntity.ok(jutsu);
+    @GetMapping("/type")
+    public ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(@RequestParam NinjaType ninjaType){
+        var listOfCharacterTypes = characterService.listCharactersByType(ninjaType);
+        return ResponseEntity.ok(listOfCharacterTypes);
     }
-    @GetMapping("/dodge/{characterId}")
-    public ResponseEntity<String> dodgeCharacter(
-            @PathVariable("characterId") Long characterId,
-            @RequestParam("ninjaType") NinjaType ninjaType) {
-        var characterInfo = characterService.dodgeCharacter(characterId, ninjaType);
-        return ResponseEntity.ok(characterInfo);
+
+    @DeleteMapping("/{characterId}")
+    public ResponseEntity<Void> deleteCharacterById(@PathVariable Long characterId){
+        characterService.deleteCharacterById(characterId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PostMapping("/battle")
+    ResponseEntity<BattleResponseDTO> fight(@RequestBody AttackRequestDTO attackRequestDTO){
+        var attackResult = characterService.fight(attackRequestDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(attackResult);
+    }
+
+    @PostMapping("/chakra/{ninjaId}")
+    ResponseEntity<CharacterResponseDTO> addChakra(@PathVariable Long ninjaId, @RequestParam int chakraAmount){
+        var character = characterService.addChakra(ninjaId, chakraAmount);
+        return ResponseEntity.status(HttpStatus.CREATED).body(character);
     }
 }
