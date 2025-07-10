@@ -1,19 +1,23 @@
-package io.github.josiasbarreto_dev.desafio_naruto.service;
+package io.github.josiasbarreto_dev.desafio_naruto.service.impl;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.*;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.NameAlreadyExistsException;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
 import io.github.josiasbarreto_dev.desafio_naruto.model.*;
 import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.CharacterRepository;
+import io.github.josiasbarreto_dev.desafio_naruto.service.CharacterServiceInterface;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class CharacterService {
+public class CharacterService implements CharacterServiceInterface {
     private final CharacterRepository repository;
     private final CharacterMapper mapper;
 
@@ -23,8 +27,8 @@ public class CharacterService {
     }
 
     @Transactional
-    public CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO){
-        if(repository.existsByName(requestDTO.name())){
+    public CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO) {
+        if (repository.existsByName(requestDTO.name())) {
             throw new NameAlreadyExistsException("There is already a registered character with this name: " + requestDTO.name());
         }
         Character character = switch (requestDTO.ninjaType()) {
@@ -43,42 +47,34 @@ public class CharacterService {
         return mapper.toDTO(repository.save(character));
     }
 
-    public List<CharacterResponseDTO> listCharacter(){
+    public List<CharacterResponseDTO> listCharacter() {
         var listCharacter = repository.findAll();
         return mapper.toDTO(listCharacter);
     }
 
     public Character getCharacterById(Long characterId) {
-        return repository.findById(characterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
+        return repository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
     }
 
-    public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType){
-        return repository.findAll()
-                .stream()
-                .filter(character -> {
-                    return switch (ninjaType) {
-                        case NINJUTSU -> character instanceof NinjutsuNinja;
-                        case TAIJUTSU -> character instanceof TaijutsuNinja;
-                        case INVALID_TYPE -> throw new IllegalArgumentException("Ninja type is invalid");
-                    };
-                })
-                .map(mapper::toDTO)
-                .toList();
+    public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType) {
+        return repository.findAll().stream().filter(character -> {
+            return switch (ninjaType) {
+                case NINJUTSU -> character instanceof NinjutsuNinja;
+                case TAIJUTSU -> character instanceof TaijutsuNinja;
+                case INVALID_TYPE -> throw new IllegalArgumentException("Ninja type is invalid");
+            };
+        }).map(mapper::toDTO).toList();
     }
 
-    public void deleteCharacterById(Long characterId){
-        var character = repository.findById(characterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
+    public void deleteCharacterById(Long characterId) {
+        var character = repository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
         repository.delete(character);
     }
 
     @Transactional
-    public BattleResponseDTO fight(AttackRequestDTO dto){
-        var attacker = repository.findByName(dto.attacker())
-                .orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.attacker() + " not found."));
-        var target = repository.findByName(dto.target())
-                .orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.target() + " not found."));
+    public BattleResponseDTO fight(AttackRequestDTO dto) {
+        var attacker = repository.findByName(dto.attacker()).orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.attacker() + " not found."));
+        var target = repository.findByName(dto.target()).orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.target() + " not found."));
 
         attacker.useJutsu(dto.jutsu(), target);
 
@@ -88,7 +84,7 @@ public class CharacterService {
         return new BattleResponseDTO(mapper.toDTO(attacker), mapper.toDTO(target));
     }
 
-    public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount){
+    public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount) {
         var character = getCharacterById(ninjaId);
         character.setChakra(chakraAmount);
 
