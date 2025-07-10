@@ -5,17 +5,27 @@ import jakarta.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@Entity
+@Entity(name = "character")
 @Table(name = "character")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "ninjaType")
 public abstract class Character{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
+
+    @Column(unique = true)
     protected String name;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "jutsus", joinColumns = @JoinColumn(name = "character_id"))
+    @MapKeyColumn(name = "jutsu_name")
     protected Map<String, Jutsu> jutsus  = new HashMap<>();
     protected int chakra = 100;
     protected int life;
-    protected NinjaType ninjaType;
+
+    public Character() {
+    }
 
     public Character(String name, int life) {
         this.name = name;
@@ -47,7 +57,7 @@ public abstract class Character{
     }
 
     public void setChakra(int chakra) {
-        this.chakra = chakra;
+        this.chakra += chakra;
     }
 
     public int getLife() {
@@ -77,6 +87,5 @@ public abstract class Character{
 
     public abstract void useJutsu(String jutsuName, Character adversaryNinja);
     public abstract void dodge(Jutsu jutsu);
-
 }
 
