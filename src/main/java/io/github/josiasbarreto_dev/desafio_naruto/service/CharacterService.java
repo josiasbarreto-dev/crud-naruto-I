@@ -1,156 +1,100 @@
 package io.github.josiasbarreto_dev.desafio_naruto.service;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.ChakraRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.*;
+import io.github.josiasbarreto_dev.desafio_naruto.exception.NameAlreadyExistsException;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
-import io.github.josiasbarreto_dev.desafio_naruto.model.GenjutsuNinja;
-import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
-import io.github.josiasbarreto_dev.desafio_naruto.model.NinjutsuNinja;
-import io.github.josiasbarreto_dev.desafio_naruto.model.TaijutsuNinja;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.GenjutsuRepository;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.NinjutsuRepository;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.TaijutsuRepository;
+import io.github.josiasbarreto_dev.desafio_naruto.model.*;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
+import io.github.josiasbarreto_dev.desafio_naruto.repository.CharacterRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CharacterService {
-    private final GenjutsuRepository genjutsuRepository;
-    private final NinjutsuRepository ninjutsuRepository;
-    private final TaijutsuRepository taijutsuRepository;
-
+    private final CharacterRepository repository;
     private final CharacterMapper mapper;
 
-    public CharacterService(GenjutsuRepository genjutsuRepository, NinjutsuRepository ninjutsuRepository, TaijutsuRepository taijutsuRepository, CharacterMapper mapper) {
-        this.genjutsuRepository = genjutsuRepository;
-        this.ninjutsuRepository = ninjutsuRepository;
-        this.taijutsuRepository = taijutsuRepository;
+    public CharacterService(CharacterRepository repository, CharacterMapper mapper) {
+        this.repository = repository;
         this.mapper = mapper;
     }
 
+    @Transactional
     public CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO){
-        switch (requestDTO.ninjaType()) {
-            case GENJUTSU:
-                var genjutsuToSave = mapper.toEntityGenjutsu(requestDTO);
-                GenjutsuNinja savedCharacterGenjutsu = genjutsuRepository.save(genjutsuToSave);
-                return mapper.toDTO(savedCharacterGenjutsu);
-
-            case NINJUTSU:
-                var ninjutsuToSave = mapper.toEntityNinjutsu(requestDTO);
-                NinjutsuNinja savedCharacterNinjutsu = ninjutsuRepository.save(ninjutsuToSave);
-                return mapper.toDTO(savedCharacterNinjutsu);
-
-            case TAIJUTSU:
-                var taijutsuToSave = mapper.toEntityTaijutsu(requestDTO);
-                TaijutsuNinja savedCharacterTaijutsu = taijutsuRepository.save(taijutsuToSave);
-                return mapper.toDTO(savedCharacterTaijutsu);
-
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
+        if(repository.existsByName(requestDTO.name())){
+            throw new NameAlreadyExistsException("There is already a registered character with this name: " + requestDTO.name());
         }
+        Character character = switch (requestDTO.ninjaType()) {
+            case NINJUTSU -> new NinjutsuNinja(requestDTO.name(), requestDTO.life());
+            case TAIJUTSU -> new TaijutsuNinja(requestDTO.name(), requestDTO.life());
+            default -> throw new IllegalArgumentException("Ninja type is invalid");
+        };
+
+        if (requestDTO.jutsus() != null) {
+            requestDTO.jutsus().forEach((jutsuName, jutsuDTO) -> {
+                Jutsu jutsu = new Jutsu(jutsuDTO.damage(), jutsuDTO.chakraConsumption());
+                character.addJutsu(jutsuName, jutsu);
+            });
+        }
+
+        return mapper.toDTO(repository.save(character));
     }
 
-    public CharacterResponseDTO addNewJutsu(Long characterId, JutsuRequestDTO dto) {
-        switch (dto.ninjaType()){
-            case GENJUTSU:
-                var characterGenjutsu = genjutsuRepository.findById(characterId). orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterGenjutsu.addJutsu(dto.jutsuName());
-                return mapper.toDTO(genjutsuRepository.save(characterGenjutsu));
-
-            case NINJUTSU:
-                var characterNinjutsu = ninjutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterNinjutsu.addJutsu(dto.jutsuName());
-                return mapper.toDTO(ninjutsuRepository.save(characterNinjutsu));
-
-            case TAIJUTSU:
-                var characterTaijutsu = taijutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterTaijutsu.addJutsu(dto.jutsuName());
-                return mapper.toDTO(taijutsuRepository.save(characterTaijutsu));
-
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
-        }
+    public List<CharacterResponseDTO> listCharacter(){
+        var listCharacter = repository.findAll();
+        return mapper.toDTO(listCharacter);
     }
 
-    public CharacterResponseDTO increaseChakra(Long characterId, ChakraRequestDTO dto) {
-        switch (dto.ninjaType()){
-            case GENJUTSU:
-                var characterGenjutsu = genjutsuRepository.findById(characterId). orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterGenjutsu.increaseChakra(dto.chakraValue());
-                return mapper.toDTO(genjutsuRepository.save(characterGenjutsu));
-
-            case NINJUTSU:
-                var characterNinjutsu = ninjutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterNinjutsu.increaseChakra(dto.chakraValue());
-                return mapper.toDTO(ninjutsuRepository.save(characterNinjutsu));
-
-            case TAIJUTSU:
-                var characterTaijutsu = taijutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                characterTaijutsu.increaseChakra(dto.chakraValue());
-                return mapper.toDTO(taijutsuRepository.save(characterTaijutsu));
-
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
-        }
+    public Character getCharacterById(Long characterId) {
+        return repository.findById(characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
     }
 
-    public String getDisplayInfo(Long characterId, NinjaType ninjaType){
-        switch (ninjaType){
-            case GENJUTSU:
-                var characterGenjutsu = genjutsuRepository.findById(characterId). orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterGenjutsu.displayInfo();
-
-            case NINJUTSU:
-                var characterNinjutsu = ninjutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterNinjutsu.displayInfo();
-
-            case TAIJUTSU:
-                var characterTaijutsu = taijutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterTaijutsu.displayInfo();
-
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
-        }
+    public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType){
+        return repository.findAll()
+                .stream()
+                .filter(character -> {
+                    return switch (ninjaType) {
+                        case NINJUTSU -> character instanceof NinjutsuNinja;
+                        case TAIJUTSU -> character instanceof TaijutsuNinja;
+                        case INVALID_TYPE -> throw new IllegalArgumentException("Ninja type is invalid");
+                    };
+                })
+                .map(mapper::toDTO)
+                .toList();
     }
 
-    public String useJutsu(Long characterId, NinjaType ninjaType){
-        switch (ninjaType){
-            case GENJUTSU:
-                var characterGenjutsu = genjutsuRepository.findById(characterId). orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterGenjutsu.useJutsu();
-
-            case NINJUTSU:
-                var characterNinjutsu = ninjutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterNinjutsu.useJutsu();
-
-            case TAIJUTSU:
-                var characterTaijutsu = taijutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterTaijutsu.useJutsu();
-
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
-        }
+    public void deleteCharacterById(Long characterId){
+        var character = repository.findById(characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
+        repository.delete(character);
     }
 
-    public String dodgeCharacter(Long characterId, NinjaType ninjaType){
-        switch (ninjaType){
-            case GENJUTSU:
-                var characterGenjutsu = genjutsuRepository.findById(characterId). orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterGenjutsu.dodge();
+    @Transactional
+    public BattleResponseDTO fight(AttackRequestDTO dto){
+        var attacker = repository.findByName(dto.attacker())
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.attacker() + " not found."));
+        var target = repository.findByName(dto.target())
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.target() + " not found."));
 
-            case NINJUTSU:
-                var characterNinjutsu = ninjutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterNinjutsu.dodge();
+        attacker.useJutsu(dto.jutsu(), target);
 
-            case TAIJUTSU:
-                var characterTaijutsu = taijutsuRepository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Character with ID " + characterId + " not found"));
-                return characterTaijutsu.dodge();
+        repository.save(attacker);
+        repository.save(target);
 
-            default:
-                throw new IllegalArgumentException("Ninja type is invalid");
-        }
+        return new BattleResponseDTO(mapper.toDTO(attacker), mapper.toDTO(target));
+    }
+
+    public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount){
+        var character = getCharacterById(ninjaId);
+        character.setChakra(chakraAmount);
+
+        var updatedCharacter = repository.save(character);
+
+        return mapper.toDTO(updatedCharacter);
     }
 }
 
