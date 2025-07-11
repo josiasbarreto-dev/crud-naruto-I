@@ -5,7 +5,6 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import io.github.josiasbarreto_dev.desafio_naruto.service.impl.CharacterService;
 import org.springframework.http.HttpStatus;
@@ -13,9 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@RestController
 public class CharacterController implements CharacterControllerInterface {
     private final CharacterService characterService;
 
@@ -36,9 +37,9 @@ public class CharacterController implements CharacterControllerInterface {
     }
 
     @Override
-    public ResponseEntity<Character> getCharacterById(@PathVariable Long characterId) {
-        var characterInfo = characterService.getCharacterById(characterId);
-        return ResponseEntity.ok(characterInfo);
+    public ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable Long characterId) {
+        var character = characterService.getCharacterById(characterId);
+        return ResponseEntity.ok(character);
     }
 
     @Override
