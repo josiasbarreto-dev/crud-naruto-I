@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
 @RequestMapping("/character")
 public interface CharacterControllerInterface {
     @PostMapping
@@ -21,7 +20,7 @@ public interface CharacterControllerInterface {
     public ResponseEntity<List<CharacterResponseDTO>> listCharacter();
 
     @GetMapping("/{characterId}")
-    public ResponseEntity<Character> getCharacterById(@PathVariable Long characterId);
+    public ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable Long characterId);
 
     @GetMapping("/type")
     public ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(@RequestParam NinjaType ninjaType);
