@@ -197,7 +197,7 @@ public class CharacterControllerTest {
         String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
         when(characterService.getCharacterById(INVALID_CHARACTER_ID)).thenThrow(new ResourceNotFoundException(message));
 
-        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             characterController.getCharacterById(INVALID_CHARACTER_ID);
         });
 
@@ -238,7 +238,7 @@ public class CharacterControllerTest {
         doThrow(new ResourceNotFoundException(message))
                 .when(characterService).deleteCharacterById(INVALID_CHARACTER_ID);
 
-        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             characterController.deleteCharacterById(INVALID_CHARACTER_ID);
         });
 
