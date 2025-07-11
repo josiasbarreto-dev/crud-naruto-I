@@ -16,7 +16,7 @@ public interface CharacterServiceInterface {
 
     public List<CharacterResponseDTO> listCharacter();
 
-    public Character getCharacterById(Long characterId);
+    public CharacterResponseDTO getCharacterById(Long characterId);
 
     public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType);
 
