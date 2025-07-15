@@ -4,7 +4,6 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
