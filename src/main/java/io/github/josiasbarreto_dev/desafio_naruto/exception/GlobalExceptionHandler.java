@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NameAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleNameConflict(NameAlreadyExistsException ex) {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", 409);
+        response.put("status", HttpStatus.CONFLICT.value());
         response.put("error", "Data Conflict");
         response.put("message", ex.getMessage());
 
@@ -32,19 +32,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JutsuNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleJutsuNotFoundException(JutsuNotFoundException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Bad Request");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(InsufficientChakraException.class)
     public ResponseEntity<Map<String, Object>> handleInsufficientChakraException(InsufficientChakraException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Bad Request");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
