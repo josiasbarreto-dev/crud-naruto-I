@@ -6,7 +6,7 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
-import io.github.josiasbarreto_dev.desafio_naruto.service.impl.CharacterService;
+import io.github.josiasbarreto_dev.desafio_naruto.service.CharacterServiceInterface;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,9 +18,9 @@ import java.util.List;
 
 @RestController
 public class CharacterController implements CharacterControllerInterface {
-    private final CharacterService characterService;
+    private final CharacterServiceInterface characterService;
 
-    public CharacterController(CharacterService characterService) {
+    public CharacterController(CharacterServiceInterface characterService) {
         this.characterService = characterService;
     }
 
