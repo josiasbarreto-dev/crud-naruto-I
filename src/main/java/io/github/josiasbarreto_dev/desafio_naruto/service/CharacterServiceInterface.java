@@ -12,18 +12,18 @@ import java.util.List;
 
 public interface CharacterServiceInterface {
     @Transactional
-    public CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO);
+    CharacterResponseDTO createCharacter(CharacterRequestDTO requestDTO);
 
-    public List<CharacterResponseDTO> listCharacter();
+    List<CharacterResponseDTO> listCharacter();
 
-    public CharacterResponseDTO getCharacterById(Long characterId);
+    CharacterResponseDTO getCharacterById(Long characterId);
 
-    public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType);
+    List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType);
 
-    public void deleteCharacterById(Long characterId);
+    void deleteCharacterById(Long characterId);
 
     @Transactional
-    public BattleResponseDTO fight(AttackRequestDTO dto);
+    BattleResponseDTO fight(AttackRequestDTO dto);
 
-    public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount);
+    CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount);
 }

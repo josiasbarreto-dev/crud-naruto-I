@@ -14,19 +14,19 @@ import java.util.List;
 @RequestMapping("/character")
 public interface CharacterControllerInterface {
     @PostMapping
-    public ResponseEntity<CharacterResponseDTO> createCharacter(@RequestBody CharacterRequestDTO requestDTO);
+    ResponseEntity<CharacterResponseDTO> createCharacter(@RequestBody CharacterRequestDTO requestDTO);
 
     @GetMapping
-    public ResponseEntity<List<CharacterResponseDTO>> listCharacter();
+    ResponseEntity<List<CharacterResponseDTO>> listCharacters();
 
     @GetMapping("/{characterId}")
-    public ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable Long characterId);
+    ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable Long characterId);
 
     @GetMapping("/type")
-    public ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(@RequestParam NinjaType ninjaType);
+    ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(@RequestParam NinjaType ninjaType);
 
     @DeleteMapping("/{characterId}")
-    public ResponseEntity<Void> deleteCharacterById(@PathVariable Long characterId);
+    ResponseEntity<Void> deleteCharacterById(@PathVariable Long characterId);
 
     @PostMapping("/battle")
     ResponseEntity<BattleResponseDTO> fight(@RequestBody AttackRequestDTO attackRequestDTO);
