@@ -31,7 +31,7 @@ public class CharacterController implements CharacterControllerInterface {
     }
 
     @Override
-    public ResponseEntity<List<CharacterResponseDTO>> listCharacter() {
+    public ResponseEntity<List<CharacterResponseDTO>> listCharacters() {
         var listCharacter = characterService.listCharacter();
         return ResponseEntity.ok(listCharacter);
     }
