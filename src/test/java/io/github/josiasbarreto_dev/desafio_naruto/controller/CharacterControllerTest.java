@@ -57,8 +57,8 @@ public class CharacterControllerTest {
 
     @BeforeEach
     void setup() {
-        payloadRequestDTO = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_CHAKRA, NinjaType.TAIJUTSU);
-        payloadRequestWithNinjaTypeInvalid = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_CHAKRA, NinjaType.INVALID_TYPE);
+        payloadRequestDTO = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_LIFE, NinjaType.TAIJUTSU);
+        payloadRequestWithNinjaTypeInvalid = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_LIFE, NinjaType.INVALID_TYPE);
 
         expectedCharacterJiraiya = buildCharacterResponseDTO(VALID_CHARACTER_ID, "Jiraiya", getDefaultJutsus(), DEFAULT_CHAKRA, DEFAULT_LIFE);
         expectedCharacterNaruto = buildCharacterResponseDTO(2L, "Naruto Uzumaki", getDefaultJutsus(), NARUTO_CHAKRA, NARUTO_LIFE);
@@ -86,8 +86,8 @@ public class CharacterControllerTest {
         );
     }
 
-    private CharacterRequestDTO buildCharacterRequestDTO(String name, Map<String, JutsuRequestDTO> jutsus, int chakra, NinjaType type) {
-        return new CharacterRequestDTO(name, jutsus, chakra, type);
+    private CharacterRequestDTO buildCharacterRequestDTO(String name, Map<String, JutsuRequestDTO> jutsus, int life, NinjaType type) {
+        return new CharacterRequestDTO(name, jutsus, life, type);
     }
 
     private CharacterResponseDTO buildCharacterResponseDTO(Long id, String name, Map<String, Jutsu> jutsus, int chakra, int life) {
