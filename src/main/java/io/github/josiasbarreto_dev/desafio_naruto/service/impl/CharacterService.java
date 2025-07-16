@@ -54,8 +54,7 @@ public class CharacterService implements CharacterServiceInterface {
 
     @Override
     public CharacterResponseDTO getCharacterById(Long characterId) {
-        var character = repository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
-        return mapper.toDTO(character);
+        return mapper.toDTO(findCharacterById(characterId));
     }
 
     @Override
@@ -71,31 +70,44 @@ public class CharacterService implements CharacterServiceInterface {
 
     @Override
     public void deleteCharacterById(Long characterId) {
-        var character = repository.findById(characterId).orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
-        repository.delete(character);
+        repository.delete(findCharacterById(characterId));
     }
 
     @Override
     public BattleResponseDTO fight(AttackRequestDTO dto) {
-        var attacker = repository.findByName(dto.attacker()).orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.attacker() + " not found."));
-        var target = repository.findByName(dto.target()).orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + dto.target() + " not found."));
+        var attacker = findCharacterByName(dto.attacker());
+        var target = findCharacterByName(dto.target());
 
         attacker.useJutsu(dto.jutsu(), target);
 
-        repository.save(attacker);
-        repository.save(target);
+        Character createdAttacker = saveCharacter(attacker);
+        Character createdTarget = saveCharacter(target);
 
-        return new BattleResponseDTO(mapper.toDTO(attacker), mapper.toDTO(target));
+        return new BattleResponseDTO(mapper.toDTO(createdAttacker), mapper.toDTO(createdTarget));
     }
 
     @Override
     public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount) {
-        var character = repository.findById(ninjaId).orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + ninjaId + " not found."));
+        var character = findCharacterById(ninjaId);
         character.setChakra(chakraAmount);
 
-        var updatedCharacter = repository.save(character);
+        var updatedCharacter = saveCharacter(character);
 
         return mapper.toDTO(updatedCharacter);
+    }
+
+    private Character findCharacterById(Long characterId) {
+        return repository.findById(characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
+    }
+
+    private Character findCharacterByName(String name) {
+        return repository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with name " + name + " not found."));
+    }
+
+    private Character saveCharacter(Character character) {
+        return repository.save(character);
     }
 }
 
