@@ -1,6 +1,5 @@
 package io.github.josiasbarreto_dev.desafio_naruto.dto;
 
-import io.github.josiasbarreto_dev.desafio_naruto.model.Jutsu;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 
 import java.util.Map;
