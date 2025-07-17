@@ -10,7 +10,7 @@ import java.util.Random;
 @Entity
 @DiscriminatorValue("TAIJUTSU")
 public class TaijutsuNinja extends Character{
-    public TaijutsuNinja(String name, int life) {
+    public TaijutsuNinja(String name, Integer life) {
         super(name, life);
     }
 

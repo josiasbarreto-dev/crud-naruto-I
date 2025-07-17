@@ -25,5 +25,5 @@ public interface CharacterServiceInterface {
     @Transactional
     BattleResponseDTO fight(AttackRequestDTO dto);
 
-    CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount);
+    CharacterResponseDTO addChakra(Long ninjaId, Integer chakraAmount);
 }

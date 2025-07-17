@@ -61,7 +61,7 @@ public class CharacterController implements CharacterControllerInterface {
     }
 
     @Override
-    public ResponseEntity<CharacterResponseDTO> addChakra(@PathVariable Long ninjaId, @RequestParam int chakraAmount){
+    public ResponseEntity<CharacterResponseDTO> addChakra(@PathVariable Long ninjaId, @RequestParam Integer chakraAmount){
         var character = characterService.addChakra(ninjaId, chakraAmount);
         return ResponseEntity.status(HttpStatus.CREATED).body(character);
     }

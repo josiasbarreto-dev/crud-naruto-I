@@ -43,17 +43,17 @@ public class CharacterControllerTest {
     private static final Long INVALID_CHARACTER_ID = 10L;
     private static final NinjaType NINJA_TYPE_TAIJUTSU = NinjaType.TAIJUTSU;
 
-    private static final int DEFAULT_CHAKRA = 100;
-    private static final int DEFAULT_LIFE = 100;
-    private static final int NARUTO_CHAKRA = 150;
-    private static final int NARUTO_LIFE = 200;
+    private static final Integer DEFAULT_CHAKRA = 100;
+    private static final Integer DEFAULT_LIFE = 100;
+    private static final Integer NARUTO_CHAKRA = 150;
+    private static final Integer NARUTO_LIFE = 200;
 
-    private static final int DAMAGE_HIGH = 80;
-    private static final int CHAKRA_COST_HIGH = 60;
-    private static final int DAMAGE_MEDIUM = 20;
-    private static final int CHAKRA_COST_MEDIUM = 30;
-    private static final int DAMAGE_ZERO = 0;
-    private static final int CHAKRA_COST_FULL = 100;
+    private static final Integer DAMAGE_HIGH = 80;
+    private static final Integer CHAKRA_COST_HIGH = 60;
+    private static final Integer DAMAGE_MEDIUM = 20;
+    private static final Integer CHAKRA_COST_MEDIUM = 30;
+    private static final Integer DAMAGE_ZERO = 0;
+    private static final Integer CHAKRA_COST_FULL = 100;
 
     @BeforeEach
     void setup() {
@@ -86,11 +86,11 @@ public class CharacterControllerTest {
         );
     }
 
-    private CharacterRequestDTO buildCharacterRequestDTO(String name, Map<String, JutsuRequestDTO> jutsus, int life, NinjaType type) {
+    private CharacterRequestDTO buildCharacterRequestDTO(String name, Map<String, JutsuRequestDTO> jutsus, Integer life, NinjaType type) {
         return new CharacterRequestDTO(name, jutsus, life, type);
     }
 
-    private CharacterResponseDTO buildCharacterResponseDTO(Long id, String name, Map<String, Jutsu> jutsus, int chakra, int life) {
+    private CharacterResponseDTO buildCharacterResponseDTO(Long id, String name, Map<String, Jutsu> jutsus, Integer chakra, Integer life) {
         return new CharacterResponseDTO(id, name, jutsus, chakra, life);
     }
 
@@ -210,7 +210,7 @@ public class CharacterControllerTest {
     @Test
     @DisplayName("Deve adicionar o novo chakra e retornar sucesso")
     void shouldAddNewChakraAndReturnSuccess(){
-        int chakraAmount = 100;
+        Integer chakraAmount = 100;
 
         when(characterService.addChakra(VALID_CHARACTER_ID, chakraAmount)).thenReturn(expectedCharacterJiraiya);
 

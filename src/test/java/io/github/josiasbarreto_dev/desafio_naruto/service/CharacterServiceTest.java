@@ -441,7 +441,7 @@ class CharacterServiceTest {
     @Test
     @DisplayName("Deve Adicionar Chakra com Sucesso")
     void shouldAddChakraSuccessfully() {
-        int chakraAmount = 50;
+        Integer chakraAmount = 50;
 
         when(characterRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(jiraiyaEntity));
 

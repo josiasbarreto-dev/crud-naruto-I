@@ -21,13 +21,13 @@ public abstract class Character{
     @CollectionTable(name = "jutsus", joinColumns = @JoinColumn(name = "character_id"))
     @MapKeyColumn(name = "jutsu_name")
     protected Map<String, Jutsu> jutsus  = new HashMap<>();
-    protected int chakra = 100;
-    protected int life;
+    protected Integer chakra = 100;
+    protected Integer life;
 
     public Character() {
     }
 
-    public Character(String name, int life) {
+    public Character(String name, Integer life) {
         this.name = name;
         this.life = life;
     }
@@ -52,19 +52,19 @@ public abstract class Character{
         return jutsus;
     }
 
-    public int getChakra() {
+    public Integer getChakra() {
         return chakra;
     }
 
-    public void setChakra(int chakra) {
+    public void setChakra(Integer chakra) {
         this.chakra += chakra;
     }
 
-    public int getLife() {
+    public Integer getLife() {
         return life;
     }
 
-    public void setLife(int life) {
+    public void setLife(Integer life) {
         this.life = life;
     }
 
@@ -78,7 +78,7 @@ public abstract class Character{
         }
     }
 
-    public void loseLife(int damage){
+    public void loseLife(Integer damage){
         this.life -= damage;
         if(this.life < 0){
             this.life = 0;

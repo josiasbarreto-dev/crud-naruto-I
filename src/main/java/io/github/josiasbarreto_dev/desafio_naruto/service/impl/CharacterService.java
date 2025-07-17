@@ -87,7 +87,7 @@ public class CharacterService implements CharacterServiceInterface {
     }
 
     @Override
-    public CharacterResponseDTO addChakra(Long ninjaId, int chakraAmount) {
+    public CharacterResponseDTO addChakra(Long ninjaId, Integer chakraAmount) {
         var character = findCharacterById(ninjaId);
         character.setChakra(chakraAmount);
 

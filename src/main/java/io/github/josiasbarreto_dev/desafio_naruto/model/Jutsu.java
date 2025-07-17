@@ -4,30 +4,30 @@ import jakarta.persistence.*;
 
 @Embeddable
 public class Jutsu {
-    private int damage;
-    private int chakraConsumption;
+    private Integer damage;
+    private Integer chakraConsumption;
 
     public Jutsu() {
     }
 
-    public Jutsu(int damage, int chakraConsumption) {
+    public Jutsu(Integer damage, Integer chakraConsumption) {
         this.damage = damage;
         this.chakraConsumption = chakraConsumption;
     }
 
-    public int getDamage() {
+    public Integer getDamage() {
         return damage;
     }
 
-    public void setDamage(int damage) {
+    public void setDamage(Integer damage) {
         this.damage = damage;
     }
 
-    public int getChakraConsumption() {
+    public Integer getChakraConsumption() {
         return chakraConsumption;
     }
 
-    public void setChakraConsumption(int chakraConsumption) {
+    public void setChakraConsumption(Integer chakraConsumption) {
         this.chakraConsumption = chakraConsumption;
     }
 
