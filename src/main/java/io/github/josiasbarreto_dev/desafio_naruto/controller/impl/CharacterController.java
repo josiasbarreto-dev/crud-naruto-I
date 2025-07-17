@@ -25,32 +25,32 @@ public class CharacterController implements CharacterControllerInterface {
     }
 
     @Override
-    public ResponseEntity<CharacterResponseDTO> createCharacter(@RequestBody CharacterRequestDTO requestDTO) {
+    public ResponseEntity<CharacterResponseDTO> create(@RequestBody CharacterRequestDTO requestDTO) {
         var character = characterService.createCharacter(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(character);
     }
 
     @Override
-    public ResponseEntity<List<CharacterResponseDTO>> listCharacters() {
+    public ResponseEntity<List<CharacterResponseDTO>> list() {
         var listCharacter = characterService.listCharacter();
         return ResponseEntity.ok(listCharacter);
     }
 
     @Override
-    public ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable Long characterId) {
-        var character = characterService.getCharacterById(characterId);
+    public ResponseEntity<CharacterResponseDTO> get(@PathVariable Long id) {
+        var character = characterService.getCharacterById(id);
         return ResponseEntity.ok(character);
     }
 
     @Override
-    public ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(@RequestParam NinjaType ninjaType){
+    public ResponseEntity<List<CharacterResponseDTO>> list(@RequestParam NinjaType ninjaType){
         var listOfCharacterTypes = characterService.listCharactersByType(ninjaType);
         return ResponseEntity.ok(listOfCharacterTypes);
     }
 
     @Override
-    public ResponseEntity<Void> deleteCharacterById(@PathVariable Long characterId){
-        characterService.deleteCharacterById(characterId);
+    public ResponseEntity<Void> delete(@PathVariable Long id){
+        characterService.deleteCharacterById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -61,8 +61,8 @@ public class CharacterController implements CharacterControllerInterface {
     }
 
     @Override
-    public ResponseEntity<CharacterResponseDTO> addChakra(@PathVariable Long ninjaId, @RequestParam Integer chakraAmount){
-        var character = characterService.addChakra(ninjaId, chakraAmount);
+    public ResponseEntity<CharacterResponseDTO> addChakra(@PathVariable Long id, @RequestParam Integer chakraAmount){
+        var character = characterService.addChakra(id, chakraAmount);
         return ResponseEntity.status(HttpStatus.CREATED).body(character);
     }
 }

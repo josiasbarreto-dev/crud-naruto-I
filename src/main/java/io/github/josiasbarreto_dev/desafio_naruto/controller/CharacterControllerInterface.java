@@ -30,7 +30,7 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<CharacterResponseDTO> createCharacter(
+    ResponseEntity<CharacterResponseDTO> create(
             @Valid
             @Parameter(description = "Character data to create", required = true, schema = @Schema(implementation = CharacterRequestDTO.class))
             @RequestBody CharacterRequestDTO requestDTO
@@ -42,7 +42,7 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<CharacterResponseDTO>> listCharacters();
+    ResponseEntity<List<CharacterResponseDTO>> list();
 
     @Operation(summary = "Get character by ID", method = "GET")
     @ApiResponses(value = {
@@ -50,10 +50,10 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "404", description = "Character not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
-    @GetMapping(value = "/{characterId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<CharacterResponseDTO> getCharacterById(
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<CharacterResponseDTO> get(
             @Parameter(description = "ID of the character to retrieve", required = true, schema = @Schema(type = "integer", format = "int64", example = "1"))
-            @PathVariable Long characterId
+            @PathVariable Long id
     );
 
     @Operation(summary = "List characters by type", method = "GET")
@@ -63,7 +63,7 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
     @GetMapping(value = "/type", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<CharacterResponseDTO>> listCharactersByType(
+    ResponseEntity<List<CharacterResponseDTO>> list(
             @Parameter(description = "Type of ninja to filter by (NINJUTSU, TAIJUTSU)", required = true, schema = @Schema(implementation = NinjaType.class))
             @RequestParam NinjaType ninjaType
     );
@@ -74,10 +74,10 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "404", description = "Character not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
-    @DeleteMapping(value = "/{characterId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Void> deleteCharacterById(
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Void> delete(
             @Parameter(description = "ID of the character to delete", required = true, schema = @Schema(type = "integer", format = "int64", example = "1"))
-            @PathVariable Long characterId);
+            @PathVariable Long id);
 
     @Operation(summary = "Fight between characters", method = "POST")
     @ApiResponses(value = {
@@ -98,11 +98,11 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "400", description = "Invalid chakra amount"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
-    @PostMapping(value = "/chakra/{ninjaId}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/chakra/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CharacterResponseDTO> addChakra(
             @Valid
             @Parameter(description = "ID of the ninja to add chakra to", required = true, schema = @Schema(type = "integer", format = "int64", example = "1"))
-            @PathVariable Long ninjaId,
+            @PathVariable Long id,
             @Parameter(description = "Amount of chakra to add", required = true, schema = @Schema(type = "integer", example = "50"))
             @RequestParam Integer chakraAmount
     );
