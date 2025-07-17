@@ -1,6 +1,9 @@
 package io.github.josiasbarreto_dev.desafio_naruto.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +12,9 @@ import java.util.Map;
 @Table(name = "character")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ninjaType")
+@Getter
+@Setter
+@NoArgsConstructor
 public abstract class Character{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,47 +30,8 @@ public abstract class Character{
     protected Integer chakra = 100;
     protected Integer life;
 
-    public Character() {
-    }
-
     public Character(String name, Integer life) {
         this.name = name;
-        this.life = life;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Map<String, Jutsu> getJutsus() {
-        return jutsus;
-    }
-
-    public Integer getChakra() {
-        return chakra;
-    }
-
-    public void setChakra(Integer chakra) {
-        this.chakra += chakra;
-    }
-
-    public Integer getLife() {
-        return life;
-    }
-
-    public void setLife(Integer life) {
         this.life = life;
     }
 

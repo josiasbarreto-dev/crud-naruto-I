@@ -4,17 +4,16 @@ import io.github.josiasbarreto_dev.desafio_naruto.exception.InsufficientChakraEx
 import io.github.josiasbarreto_dev.desafio_naruto.exception.JutsuNotFoundException;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import lombok.NoArgsConstructor;
 
 import java.util.Random;
 
 @Entity
 @DiscriminatorValue("TAIJUTSU")
+@NoArgsConstructor
 public class TaijutsuNinja extends Character{
     public TaijutsuNinja(String name, Integer life) {
         super(name, life);
-    }
-
-    public TaijutsuNinja() {
     }
 
     @Override
