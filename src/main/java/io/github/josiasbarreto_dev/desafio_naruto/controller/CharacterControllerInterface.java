@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public interface CharacterControllerInterface {
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CharacterResponseDTO> createCharacter(
+            @Valid
             @Parameter(description = "Character data to create", required = true, schema = @Schema(implementation = CharacterRequestDTO.class))
             @RequestBody CharacterRequestDTO requestDTO
     );
@@ -85,7 +87,9 @@ public interface CharacterControllerInterface {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
     })
     @PostMapping(value = "/battle", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<BattleResponseDTO> fight(@RequestBody AttackRequestDTO attackRequestDTO);
+    ResponseEntity<BattleResponseDTO> fight(
+            @Valid
+            @RequestBody AttackRequestDTO attackRequestDTO);
 
     @Operation(summary = "Add chakra to a ninja", method = "POST")
     @ApiResponses(value = {
@@ -96,9 +100,10 @@ public interface CharacterControllerInterface {
     })
     @PostMapping(value = "/chakra/{ninjaId}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CharacterResponseDTO> addChakra(
+            @Valid
             @Parameter(description = "ID of the ninja to add chakra to", required = true, schema = @Schema(type = "integer", format = "int64", example = "1"))
             @PathVariable Long ninjaId,
             @Parameter(description = "Amount of chakra to add", required = true, schema = @Schema(type = "integer", example = "50"))
-            @RequestParam int chakraAmount
+            @RequestParam Integer chakraAmount
     );
 }
