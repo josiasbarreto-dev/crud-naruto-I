@@ -53,8 +53,8 @@ public class CharacterService implements CharacterServiceInterface {
     }
 
     @Override
-    public CharacterResponseDTO getCharacterById(Long characterId) {
-        return mapper.toDTO(findCharacterById(characterId));
+    public CharacterResponseDTO getCharacterById(Long id) {
+        return mapper.toDTO(findCharacterById(id));
     }
 
     @Override
@@ -69,8 +69,8 @@ public class CharacterService implements CharacterServiceInterface {
     }
 
     @Override
-    public void deleteCharacterById(Long characterId) {
-        repository.delete(findCharacterById(characterId));
+    public void deleteCharacterById(Long id) {
+        repository.delete(findCharacterById(id));
     }
 
     @Override
@@ -87,8 +87,8 @@ public class CharacterService implements CharacterServiceInterface {
     }
 
     @Override
-    public CharacterResponseDTO addChakra(Long ninjaId, Integer chakraAmount) {
-        var character = findCharacterById(ninjaId);
+    public CharacterResponseDTO addChakra(Long id, Integer chakraAmount) {
+        var character = findCharacterById(id);
         character.setChakra(chakraAmount);
 
         var updatedCharacter = saveCharacter(character);
@@ -96,9 +96,9 @@ public class CharacterService implements CharacterServiceInterface {
         return mapper.toDTO(updatedCharacter);
     }
 
-    private Character findCharacterById(Long characterId) {
-        return repository.findById(characterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + characterId + " not found."));
+    private Character findCharacterById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ninja with id " + id + " not found."));
     }
 
     private Character findCharacterByName(String name) {

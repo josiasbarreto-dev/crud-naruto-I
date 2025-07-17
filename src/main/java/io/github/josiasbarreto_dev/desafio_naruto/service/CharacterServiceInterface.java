@@ -4,7 +4,6 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import jakarta.transaction.Transactional;
 
@@ -16,14 +15,14 @@ public interface CharacterServiceInterface {
 
     List<CharacterResponseDTO> listCharacter();
 
-    CharacterResponseDTO getCharacterById(Long characterId);
+    CharacterResponseDTO getCharacterById(Long id);
 
     List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType);
 
-    void deleteCharacterById(Long characterId);
+    void deleteCharacterById(Long id);
 
     @Transactional
     BattleResponseDTO fight(AttackRequestDTO dto);
 
-    CharacterResponseDTO addChakra(Long ninjaId, Integer chakraAmount);
+    CharacterResponseDTO addChakra(Long id, Integer chakraAmount);
 }
