@@ -1,0 +1,14 @@
+# Ignorar diretórios de build e IDE
+/target/
+.idea/
+
+# Ignorar arquivos de log
+*.log
+log/
+
+# Ignorar arquivos .class em qualquer lugar (redundante se target/ for ignorado, mas boa prática)
+*.class
+
+# Ignorar arquivos temporários ou específicos do SO
+.DS_Store
+Thumbs.db

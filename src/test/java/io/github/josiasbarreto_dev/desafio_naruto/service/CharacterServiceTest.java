@@ -1,18 +1,20 @@
 package io.github.josiasbarreto_dev.desafio_naruto.service;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.ChakraRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.exception.NameAlreadyExistsException;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
-import io.github.josiasbarreto_dev.desafio_naruto.model.GenjutsuNinja;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Jutsu;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjutsuNinja;
 import io.github.josiasbarreto_dev.desafio_naruto.model.TaijutsuNinja;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.GenjutsuRepository;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.NinjutsuRepository;
-import io.github.josiasbarreto_dev.desafio_naruto.repository.TaijutsuRepository;
+import io.github.josiasbarreto_dev.desafio_naruto.repository.CharacterRepository;
+import io.github.josiasbarreto_dev.desafio_naruto.service.impl.CharacterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,8 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,415 +33,444 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CharacterService Unit Tests")
-public class CharacterServiceTest {
+class CharacterServiceTest {
 
     @InjectMocks
-    CharacterService characterService;
+    private CharacterService characterService;
 
     @Mock
-    GenjutsuRepository genjutsuRepository;
+    private CharacterRepository characterRepository;
+
     @Mock
-    NinjutsuRepository ninjutsuRepository;
-    @Mock
-    TaijutsuRepository taijutsuRepository;
-    @Mock
-    CharacterMapper mapper;
+    private CharacterMapper characterMapper;
 
-    private CharacterRequestDTO taijutsuCharacterRequest;
-    private CharacterRequestDTO ninjutsuCharacterRequest;
-    private CharacterRequestDTO genjutsuCharacterRequest;
-    private JutsuRequestDTO jutsuRequestDTO;
-    private ChakraRequestDTO chakraRequestDTO;
+    private static final Long VALID_CHARACTER_ID = 1L;
+    private static final Long ANOTHER_VALID_ID = 2L;
+    private static final Long INVALID_CHARACTER_ID = 10L;
 
-    private TaijutsuNinja taijutsuNinja;
-    private NinjutsuNinja ninjutsuNinja;
-    private GenjutsuNinja genjutsuNinja;
+    private CharacterRequestDTO jiraiyaRequestDTO;
+    private CharacterRequestDTO taijutsuRequestDTO;
+    private CharacterRequestDTO invalidNinjaTypeRequestDTO;
+    private AttackRequestDTO attackRequestDTO;
 
-    private CharacterResponseDTO taijutsuResponseDTO;
-    private CharacterResponseDTO ninjutsuResponseDTO;
-    private CharacterResponseDTO genjutsuResponseDTO;
+    private Character jiraiyaEntity;
+    private Character narutoEntity;
+    private Character rockLeeEntity;
 
-    private final Long VALID_CHARACTER_ID = 1L;
-    private final Long INVALID_CHARACTER_ID = 99L;
+    private CharacterResponseDTO jiraiyaResponseDTO;
+    private CharacterResponseDTO narutoResponseDTO;
+    private CharacterResponseDTO rockLeeResponseDTO;
+
+    private List<CharacterResponseDTO> characterListResponseDTO;
 
     @BeforeEach
-    void setup() {
-        taijutsuCharacterRequest = new CharacterRequestDTO(
-                "Rock Lee", 17, "Konoha", new ArrayList<>(Arrays.asList("Leaf Hurricane", "Primary Lotus")),
-                50, NinjaType.TAIJUTSU
-        );
-        ninjutsuCharacterRequest = new CharacterRequestDTO(
-                "Naruto Uzumaki", 17, "Konoha", new ArrayList<>(Arrays.asList("Rasengan", "Shadow Clone Jutsu")),
-                1000, NinjaType.NINJUTSU
-        );
-        genjutsuCharacterRequest = new CharacterRequestDTO(
-                "Itachi Uchiha", 21, "Konoha", new ArrayList<>(Arrays.asList("Tsukuyomi", "Izanami")),
-                800, NinjaType.GENJUTSU
+    void setUp() {
+        jiraiyaRequestDTO = new CharacterRequestDTO(
+                "Jiraiya",
+                Map.of(
+                        "Rasengan", new JutsuRequestDTO(80, 60),
+                        "Summoning Jutsu", new JutsuRequestDTO(20, 30),
+                        "Sage Mode", new JutsuRequestDTO(0, 100)
+                ),
+                100,
+                NinjaType.NINJUTSU
         );
 
-        jutsuRequestDTO = new JutsuRequestDTO("New Jutsu", NinjaType.TAIJUTSU);
-        chakraRequestDTO = new ChakraRequestDTO(200, NinjaType.NINJUTSU);
-
-        taijutsuNinja = new TaijutsuNinja(
-                VALID_CHARACTER_ID, "Rock Lee", 17, "Konoha", new ArrayList<>(Arrays.asList("Leaf Hurricane", "Primary Lotus")),
-                50, NinjaType.TAIJUTSU
-        );
-        ninjutsuNinja = new NinjutsuNinja(
-                VALID_CHARACTER_ID, "Naruto Uzumaki", 17, "Konoha", new ArrayList<>(Arrays.asList("Rasengan", "Shadow Clone Jutsu")),
-                1000, NinjaType.NINJUTSU
-        );
-        genjutsuNinja = new GenjutsuNinja(
-                VALID_CHARACTER_ID, "Itachi Uchiha", 21, "Konoha", new ArrayList<>(Arrays.asList("Tsukuyomi", "Izanami")),
-                800, NinjaType.GENJUTSU
+        taijutsuRequestDTO = new CharacterRequestDTO(
+                "Rock Lee",
+                Map.of("Primary Lotus", new JutsuRequestDTO(70, 50)),
+                90,
+                NinjaType.TAIJUTSU
         );
 
-        taijutsuResponseDTO = new CharacterResponseDTO(
-                VALID_CHARACTER_ID, "Rock Lee", 17, "Konoha", new ArrayList<>(Arrays.asList("Leaf Hurricane", "Primary Lotus")),
-                50, NinjaType.TAIJUTSU
+        invalidNinjaTypeRequestDTO = new CharacterRequestDTO(
+                "InvalidNinja",
+                Map.of("Basic Punch", new JutsuRequestDTO(10, 0)),
+                50,
+                NinjaType.INVALID_TYPE
         );
-        ninjutsuResponseDTO = new CharacterResponseDTO(
-                VALID_CHARACTER_ID, "Naruto Uzumaki", 17, "Konoha", new ArrayList<>(Arrays.asList("Rasengan", "Shadow Clone Jutsu")),
-                1000, NinjaType.NINJUTSU
+
+        attackRequestDTO = new AttackRequestDTO(
+                "Jiraiya",
+                "Naruto Uzumaki",
+                "Rasengan"
         );
-        genjutsuResponseDTO = new CharacterResponseDTO(
-                VALID_CHARACTER_ID, "Itachi Uchiha", 21, "Konoha", new ArrayList<>(Arrays.asList("Tsukuyomi", "Izanami")),
-                800, NinjaType.GENJUTSU
+
+        jiraiyaEntity = new NinjutsuNinja("Jiraiya", 100);
+        jiraiyaEntity.setId(VALID_CHARACTER_ID);
+        jiraiyaEntity.addJutsu("Rasengan", new Jutsu(80, 60));
+        jiraiyaEntity.addJutsu("Summoning Jutsu: Toad", new Jutsu(20, 30));
+        jiraiyaEntity.addJutsu("Sage Mode", new Jutsu(0, 100));
+
+
+
+        narutoEntity = new NinjutsuNinja("Naruto Uzumaki", 150);
+        narutoEntity.setId(ANOTHER_VALID_ID);
+        narutoEntity.addJutsu("Shadow Clone Jutsu", new Jutsu(50, 40));
+        narutoEntity.addJutsu("Rasengan", new Jutsu(90, 70));
+        narutoEntity.addJutsu("Sage Mode", new Jutsu(0, 120));
+
+        narutoEntity.setLife(150);
+
+        rockLeeEntity = new TaijutsuNinja("Rock Lee", 90);
+        rockLeeEntity.setId(3L);
+        rockLeeEntity.addJutsu("Primary Lotus", new Jutsu(70, 50));
+
+
+        jiraiyaResponseDTO = new CharacterResponseDTO(
+                VALID_CHARACTER_ID,
+                "Jiraiya",
+                Map.of(
+                        "Rasengan", new Jutsu(80, 60),
+                        "Summoning Jutsu: Toad", new Jutsu(20, 30),
+                        "Sage Mode", new Jutsu(0, 100)
+                ),
+                100,
+                100
         );
+
+        narutoResponseDTO = new CharacterResponseDTO(
+                ANOTHER_VALID_ID,
+                "Naruto Uzumaki",
+                Map.of(
+                        "Shadow Clone Jutsu", new Jutsu(50, 40),
+                        "Rasengan", new Jutsu(90, 70),
+                        "Sage Mode", new Jutsu(0, 120)
+                ),
+                100,
+                200
+        );
+
+        rockLeeResponseDTO = new CharacterResponseDTO(
+                3L,
+                "Rock Lee",
+                Map.of("Primary Lotus", new Jutsu(70, 50)),
+                100,
+                90
+        );
+
+        characterListResponseDTO = List.of(jiraiyaResponseDTO, narutoResponseDTO);
     }
 
     @Test
-    @DisplayName("Deve criar um Personagem Taijutsu com Sucesso")
-    void shouldCreateTaijutsuCharacterSuccessfully() {
-        when(mapper.toEntityTaijutsu(taijutsuCharacterRequest)).thenReturn(taijutsuNinja);
-        when(taijutsuRepository.save(taijutsuNinja)).thenReturn(taijutsuNinja);
-        when(mapper.toDTO(taijutsuNinja)).thenReturn(taijutsuResponseDTO);
-
-        CharacterResponseDTO response = characterService.createCharacter(taijutsuCharacterRequest);
-
-        assertNotNull(response);
-        assertEquals(taijutsuResponseDTO.id(), response.id());
-        assertEquals(taijutsuResponseDTO.name(), response.name());
-        assertEquals(taijutsuResponseDTO.ninjaType(), response.ninjaType());
-
-        verify(mapper, times(1)).toEntityTaijutsu(taijutsuCharacterRequest);
-        verify(taijutsuRepository, times(1)).save(taijutsuNinja);
-        verify(mapper, times(1)).toDTO(taijutsuNinja);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve criar um Personagem Ninjutsu com Sucesso")
+    @DisplayName("Deve criar personagem Ninjutsu com sucesso")
     void shouldCreateNinjutsuCharacterSuccessfully() {
-        when(mapper.toEntityNinjutsu(ninjutsuCharacterRequest)).thenReturn(ninjutsuNinja);
-        when(ninjutsuRepository.save(ninjutsuNinja)).thenReturn(ninjutsuNinja);
-        when(mapper.toDTO(ninjutsuNinja)).thenReturn(ninjutsuResponseDTO);
+        when(characterRepository.existsByName(jiraiyaRequestDTO.name())).thenReturn(false);
 
-        CharacterResponseDTO response = characterService.createCharacter(ninjutsuCharacterRequest);
+        when(characterRepository.save(any(NinjutsuNinja.class))).thenReturn((NinjutsuNinja) jiraiyaEntity);
+        when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseDTO);
 
-        assertNotNull(response);
-        assertEquals(ninjutsuResponseDTO.id(), response.id());
-        assertEquals(ninjutsuResponseDTO.name(), response.name());
-        assertEquals(ninjutsuResponseDTO.ninjaType(), response.ninjaType());
+        CharacterResponseDTO result = characterService.createCharacter(jiraiyaRequestDTO);
 
-        verify(mapper, times(1)).toEntityNinjutsu(ninjutsuCharacterRequest);
-        verify(ninjutsuRepository, times(1)).save(ninjutsuNinja);
-        verify(mapper, times(1)).toDTO(ninjutsuNinja);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
+        assertNotNull(result);
+        assertEquals(jiraiyaResponseDTO, result);
+        assertEquals(jiraiyaRequestDTO.name(), result.name());
+        assertEquals(jiraiyaRequestDTO.life(), result.life());
+        assertEquals(jiraiyaRequestDTO.jutsus().size(), result.jutsus().size());
+        assertTrue(result.jutsus().containsKey("Rasengan"));
+
+        verify(characterRepository, times(1)).existsByName(jiraiyaRequestDTO.name());
+        verify(characterRepository, times(1)).save(isA(NinjutsuNinja.class));
+        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
     }
 
     @Test
-    @DisplayName("Deve criar um Personagem Genjutsu com Sucesso")
-    void shouldCreateGenjutsuCharacterSuccessfully() {
-        when(mapper.toEntityGenjutsu(genjutsuCharacterRequest)).thenReturn(genjutsuNinja);
-        when(genjutsuRepository.save(genjutsuNinja)).thenReturn(genjutsuNinja);
-        when(mapper.toDTO(genjutsuNinja)).thenReturn(genjutsuResponseDTO);
+    @DisplayName("Deve criar personagem Taijutsu com sucesso")
+    void shouldCreateTaijutsuCharacterSuccessfully() {
+        when(characterRepository.existsByName(taijutsuRequestDTO.name())).thenReturn(false);
+        when(characterRepository.save(any(TaijutsuNinja.class))).thenReturn((TaijutsuNinja) rockLeeEntity);
+        when(characterMapper.toDTO(rockLeeEntity)).thenReturn(rockLeeResponseDTO);
 
-        CharacterResponseDTO response = characterService.createCharacter(genjutsuCharacterRequest);
+        CharacterResponseDTO result = characterService.createCharacter(taijutsuRequestDTO);
 
-        assertNotNull(response);
-        assertEquals(genjutsuResponseDTO.id(), response.id());
-        assertEquals(genjutsuResponseDTO.name(), response.name());
-        assertEquals(genjutsuResponseDTO.ninjaType(), response.ninjaType());
+        assertNotNull(result);
+        assertEquals(rockLeeResponseDTO, result);
+        assertEquals(taijutsuRequestDTO.name(), result.name());
 
-        verify(mapper, times(1)).toEntityGenjutsu(genjutsuCharacterRequest);
-        verify(genjutsuRepository, times(1)).save(genjutsuNinja);
-        verify(mapper, times(1)).toDTO(genjutsuNinja);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
+        verify(characterRepository, times(1)).existsByName(taijutsuRequestDTO.name());
+        verify(characterRepository, times(1)).save(isA(TaijutsuNinja.class));
+        verify(characterMapper, times(1)).toDTO(rockLeeEntity);
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao criar Personagem com NinjaType inválido/não suportado")
-    void shouldThrowExceptionWhenCreatingCharacterWithInvalidNinjaType() {
-        CharacterRequestDTO invalidRequest = new CharacterRequestDTO(
-                "Invalid Ninja",
-                10,
-                "Hidden Village",
-                new ArrayList<>(),
+    @DisplayName("Deve lançar NameAlreadyExistsException quando nome de personagem já existe")
+    void shouldThrowNameAlreadyExistsExceptionWhenCharacterNameAlreadyExists() {
+        when(characterRepository.existsByName(jiraiyaRequestDTO.name())).thenReturn(true);
+
+        NameAlreadyExistsException exception = assertThrows(NameAlreadyExistsException.class, () -> {
+            characterService.createCharacter(jiraiyaRequestDTO);
+        });
+
+        String message = "There is already a registered character with this name: " + jiraiyaRequestDTO.name();
+        assertEquals(message, exception.getMessage());
+        verify(characterRepository, times(1)).existsByName(jiraiyaRequestDTO.name());
+        verify(characterRepository, never()).save(any(Character.class));
+        verify(characterMapper, never()).toDTO(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar IllegalArgumentException quando tipo de ninja for inválido na criação")
+    void shouldThrowIllegalArgumentExceptionWhenNinjaTypeIsInvalidOnCreation() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            characterService.createCharacter(invalidNinjaTypeRequestDTO);
+        });
+
+        String message = "Ninja type is invalid";
+        assertEquals(message, exception.getMessage());
+        verify(characterRepository, times(1)).existsByName("InvalidNinja");
+        verify(characterRepository, never()).save(any(Character.class));
+        verify(characterMapper, never()).toDTO(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Listar Todos os Personagens com Sucesso")
+    void shouldListAllCharactersSuccessfully() {
+        List<Character> listCharacters = List.of(jiraiyaEntity, narutoEntity);
+        when(characterRepository.findAll()).thenReturn(listCharacters);
+        when(characterMapper.toDTO(listCharacters)).thenReturn(characterListResponseDTO);
+
+        List<CharacterResponseDTO> result = characterService.listCharacter();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(characterListResponseDTO, result);
+
+        verify(characterRepository, times(1)).findAll();
+        verify(characterMapper, times(1)).toDTO(listCharacters);
+    }
+
+    @Test
+    @DisplayName("Deve Retornar Lista Vazia Quando Nenhum Personagem Existir")
+    void shouldReturnEmptyListWhenNoCharactersExist() {
+        when(characterRepository.findAll()).thenReturn(Collections.emptyList());
+        when(characterMapper.toDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        List<CharacterResponseDTO> result = characterService.listCharacter();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(characterRepository, times(1)).findAll();
+        verify(characterMapper, times(1)).toDTO(Collections.emptyList());
+    }
+
+    @Test
+    @DisplayName("Deve Retornar Personagem por ID Quando Encontrado")
+    void shouldReturnCharacterByIdWhenFound() {
+        when(characterRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(jiraiyaEntity));
+        when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseDTO);
+
+        CharacterResponseDTO result = characterService.getCharacterById(VALID_CHARACTER_ID);
+
+        assertNotNull(result);
+        assertEquals(jiraiyaResponseDTO, result);
+        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
+        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+    }
+
+    @Test
+    @DisplayName("Deve Lançar ResourceNotFoundException Quando Personagem por ID Não For Encontrado")
+    void shouldThrowResourceNotFoundExceptionWhenCharacterByIdNotFound() {
+        when(characterRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterService.getCharacterById(INVALID_CHARACTER_ID);
+        });
+
+        String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
+        assertEquals(message, exception.getMessage());
+        verify(characterRepository, times(1)).findById(INVALID_CHARACTER_ID);
+        verify(characterMapper, never()).toDTO(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Listar Personagens por Tipo Ninjutsu com Sucesso")
+    void shouldListCharactersByTypeNinjutsuSuccessfully() {
+        List<Character> listCharacters = List.of(jiraiyaEntity, narutoEntity, rockLeeEntity);
+        List<CharacterResponseDTO> ninjutsuResponseDTOsExpected = List.of(jiraiyaResponseDTO, narutoResponseDTO);
+
+        when(characterRepository.findAll()).thenReturn(listCharacters);
+
+        when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseDTO);
+        when(characterMapper.toDTO(narutoEntity)).thenReturn(narutoResponseDTO);
+
+        List<CharacterResponseDTO> result = characterService.listCharactersByType(NinjaType.NINJUTSU);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.containsAll(ninjutsuResponseDTOsExpected) && ninjutsuResponseDTOsExpected.containsAll(result));
+        assertTrue(result.stream().allMatch(c -> c.name().equals("Jiraiya") || c.name().equals("Naruto Uzumaki")));
+
+        verify(characterRepository, times(1)).findAll();
+        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+        verify(characterMapper, times(1)).toDTO(narutoEntity);
+        verify(characterMapper, never()).toDTO(rockLeeEntity);
+    }
+
+    @Test
+    @DisplayName("Deve Listar Personagens por Tipo Taijutsu com Sucesso")
+    void shouldListCharactersByTypeTaijutsuSuccessfully() {
+        List<Character> listCharacters = List.of(jiraiyaEntity, narutoEntity, rockLeeEntity);
+
+        when(characterRepository.findAll()).thenReturn(listCharacters);
+        when(characterMapper.toDTO(rockLeeEntity)).thenReturn(rockLeeResponseDTO);
+
+        List<CharacterResponseDTO> result = characterService.listCharactersByType(NinjaType.TAIJUTSU);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(rockLeeResponseDTO, result.get(0));
+        assertTrue(result.stream().allMatch(c -> c.name().equals("Rock Lee")));
+
+        verify(characterRepository, times(1)).findAll();
+        verify(characterMapper, times(1)).toDTO(rockLeeEntity);
+        verify(characterMapper, never()).toDTO(jiraiyaEntity);
+        verify(characterMapper, never()).toDTO(narutoEntity);
+    }
+
+    @Test
+    @DisplayName("Deve Retornar Lista Vazia Quando Nenhum Personagem do Tipo Fornecido Existir")
+    void shouldReturnEmptyListWhenNoCharactersOfGivenTypeExist() {
+        List<Character> allCharacters = List.of(jiraiyaEntity, narutoEntity);
+        when(characterRepository.findAll()).thenReturn(allCharacters);
+
+        List<CharacterResponseDTO> result = characterService.listCharactersByType(NinjaType.TAIJUTSU);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(characterRepository, times(1)).findAll();
+        verify(characterMapper, never()).toDTO(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Deletar Personagem com Sucesso")
+    void shouldDeleteCharacterSuccessfully() {
+        when(characterRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(jiraiyaEntity));
+        doNothing().when(characterRepository).delete(jiraiyaEntity);
+
+        characterService.deleteCharacterById(VALID_CHARACTER_ID);
+
+        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
+        verify(characterRepository, times(1)).delete(jiraiyaEntity);
+    }
+
+    @Test
+    @DisplayName("Deve Lançar ResourceNotFoundException ao Deletar Personagem Inexistente")
+    void shouldThrowResourceNotFoundExceptionWhenDeletingNonExistentCharacter() {
+        when(characterRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterService.deleteCharacterById(INVALID_CHARACTER_ID);
+        });
+
+        String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
+        assertEquals(message, exception.getMessage());
+        verify(characterRepository, times(1)).findById(INVALID_CHARACTER_ID);
+        verify(characterRepository, never()).delete(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Realizar Luta e Retornar BattleResponseDTO")
+    void shouldPerformFightAndReturnBattleResponseDTO() {
+        when(characterRepository.findByName(attackRequestDTO.attacker())).thenReturn(Optional.of(jiraiyaEntity));
+        when(characterRepository.findByName(attackRequestDTO.target())).thenReturn(Optional.of(narutoEntity));
+
+        when(characterRepository.save(any(Character.class))).thenAnswer(invocation -> {
+            Character savedChar = invocation.getArgument(0);
+            if (savedChar.getId().equals(jiraiyaEntity.getId())) {
+                savedChar.setChakra(40);
+            } else if (savedChar.getId().equals(narutoEntity.getId())) {
+                savedChar.setLife(70);
+            }
+            return savedChar;
+        });
+
+        CharacterResponseDTO jiraiyaResponseAfterFight = new CharacterResponseDTO(
+                VALID_CHARACTER_ID, "Jiraiya", jiraiyaResponseDTO.jutsus(), jiraiyaResponseDTO.life(), 40);
+        CharacterResponseDTO narutoResponseAfterFight = new CharacterResponseDTO(
+                ANOTHER_VALID_ID, "Naruto Uzumaki", narutoResponseDTO.jutsus(), 70, narutoResponseDTO.chakra());
+
+        when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseAfterFight);
+        when(characterMapper.toDTO(narutoEntity)).thenReturn(narutoResponseAfterFight);
+
+        BattleResponseDTO result = characterService.fight(attackRequestDTO);
+
+        assertNotNull(result);
+        assertEquals(jiraiyaResponseAfterFight, result.attacker());
+        assertEquals(narutoResponseAfterFight, result.defender());
+
+        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
+        verify(characterRepository, times(1)).findByName(attackRequestDTO.target());
+        verify(characterRepository, times(2)).save(any(Character.class));
+        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+        verify(characterMapper, times(1)).toDTO(narutoEntity);
+    }
+
+
+    @Test
+    @DisplayName("Deve Lançar ResourceNotFoundException Quando o Atacante Não For Encontrado na Luta")
+    void shouldThrowResourceNotFoundExceptionWhenAttackerNotFoundInFight() {
+        when(characterRepository.findByName(attackRequestDTO.attacker())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterService.fight(attackRequestDTO);
+        });
+
+        String message = "Ninja with name " + attackRequestDTO.attacker() + " not found.";
+        assertEquals(message, exception.getMessage());
+        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
+        verify(characterRepository, never()).findByName(attackRequestDTO.target());
+        verify(characterRepository, never()).save(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Lançar ResourceNotFoundException Quando o Alvo Não For Encontrado na Luta")
+    void shouldThrowResourceNotFoundExceptionWhenTargetNotFoundInFight() {
+        when(characterRepository.findByName(attackRequestDTO.attacker())).thenReturn(Optional.of(jiraiyaEntity));
+        when(characterRepository.findByName(attackRequestDTO.target())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterService.fight(attackRequestDTO);
+        });
+
+        assertEquals("Ninja with name " + attackRequestDTO.target() + " not found.", exception.getMessage());
+        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
+        verify(characterRepository, times(1)).findByName(attackRequestDTO.target());
+        verify(characterRepository, never()).save(any(Character.class));
+    }
+
+    @Test
+    @DisplayName("Deve Adicionar Chakra com Sucesso")
+    void shouldAddChakraSuccessfully() {
+        Integer chakraAmount = 50;
+
+        when(characterRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(jiraiyaEntity));
+
+        when(characterRepository.save(any(Character.class))).thenAnswer(invocation -> {
+            Character characterToSave = invocation.getArgument(0);
+            characterToSave.setChakra(chakraAmount);
+            return characterToSave;
+        });
+
+        CharacterResponseDTO expectedResponseDTOAfterChakraAdd = new CharacterResponseDTO(
+                VALID_CHARACTER_ID,
+                "Jiraiya",
+                Map.of(
+                        "Rasengan", new Jutsu(80, 60),
+                        "Summoning Jutsu: Toad", new Jutsu(20, 30),
+                        "Sage Mode", new Jutsu(0, 100)
+                ),
                 100,
-                NinjaType.INVALID_TYPE
+                chakraAmount
         );
+        when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(expectedResponseDTOAfterChakraAdd);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.createCharacter(invalidRequest)
-        );
+        CharacterResponseDTO result = characterService.addChakra(VALID_CHARACTER_ID, chakraAmount);
 
-        assertEquals("Ninja type is invalid", exception.getMessage());
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
-    }
+        assertNotNull(result);
+        assertEquals(expectedResponseDTOAfterChakraAdd, result);
 
-    @Test
-    @DisplayName("Deve adicionar um Jutsu a um Personagem Taijutsu com Sucesso")
-    void shouldAddNewJutsuToTaijutsuCharacterSuccessfully() {
-        TaijutsuNinja taijutsuNinjaToModify = new TaijutsuNinja(
-                taijutsuNinja.getId(), taijutsuNinja.getName(), taijutsuNinja.getAge(),
-                taijutsuNinja.getVillage(), new ArrayList<>(taijutsuNinja.getJutsus()),
-                taijutsuNinja.getChakra(), taijutsuNinja.getNinjaType()
-        );
-
-        when(taijutsuRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(taijutsuNinjaToModify));
-
-        taijutsuNinjaToModify.addJutsu(jutsuRequestDTO.jutsuName());
-
-        CharacterResponseDTO expectedResponse = new CharacterResponseDTO(
-                taijutsuNinjaToModify.getId(), taijutsuNinjaToModify.getName(), taijutsuNinjaToModify.getAge(),
-                taijutsuNinjaToModify.getVillage(), taijutsuNinjaToModify.getJutsus(),
-                taijutsuNinjaToModify.getChakra(), taijutsuNinjaToModify.getNinjaType()
-        );
-
-        when(taijutsuRepository.save(taijutsuNinjaToModify)).thenReturn(taijutsuNinjaToModify);
-        when(mapper.toDTO(taijutsuNinjaToModify)).thenReturn(expectedResponse);
-
-        CharacterResponseDTO response = characterService.addNewJutsu(VALID_CHARACTER_ID, jutsuRequestDTO);
-
-        assertNotNull(response);
-        assertTrue(response.jutsus().contains(jutsuRequestDTO.jutsuName()));
-        assertEquals(expectedResponse.jutsus().size(), response.jutsus().size());
-
-        verify(taijutsuRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(taijutsuRepository, times(1)).save(taijutsuNinjaToModify);
-        verify(mapper, times(1)).toDTO(taijutsuNinjaToModify);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao adicionar Jutsu para ID inexistente")
-    void shouldThrowResourceNotFoundExceptionWhenAddNewJutsuToInvalidId() {
-        when(taijutsuRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                characterService.addNewJutsu(INVALID_CHARACTER_ID, jutsuRequestDTO)
-        );
-        assertEquals("Character with ID " + INVALID_CHARACTER_ID + " not found", exception.getMessage());
-
-        verify(taijutsuRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao adicionar Jutsu com NinjaType INVALID_TYPE")
-    void shouldThrowExceptionWhenAddNewJutsuWithInvalidNinjaType() {
-        JutsuRequestDTO invalidJutsuRequest = new JutsuRequestDTO(
-                "Invalid Jutsu",
-                NinjaType.INVALID_TYPE
-        );
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.addNewJutsu(VALID_CHARACTER_ID, invalidJutsuRequest)
-        );
-        assertEquals("Ninja type is invalid", exception.getMessage());
-
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve aumentar o Chakra de um Personagem Ninjutsu com Sucesso")
-    void shouldIncreaseChakraOfNinjutsuCharacterSuccessfully() {
-        NinjutsuNinja ninjutsuNinjaToModify = new NinjutsuNinja(
-                ninjutsuNinja.getId(), ninjutsuNinja.getName(), ninjutsuNinja.getAge(),
-                ninjutsuNinja.getVillage(), new ArrayList<>(ninjutsuNinja.getJutsus()),
-                ninjutsuNinja.getChakra(), ninjutsuNinja.getNinjaType()
-        );
-
-        when(ninjutsuRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(ninjutsuNinjaToModify));
-
-        ninjutsuNinjaToModify.increaseChakra(chakraRequestDTO.chakraValue());
-
-        CharacterResponseDTO expectedResponse = new CharacterResponseDTO(
-                ninjutsuNinjaToModify.getId(), ninjutsuNinjaToModify.getName(), ninjutsuNinjaToModify.getAge(),
-                ninjutsuNinjaToModify.getVillage(), ninjutsuNinjaToModify.getJutsus(),
-                ninjutsuNinjaToModify.getChakra(), ninjutsuNinjaToModify.getNinjaType()
-        );
-
-        when(ninjutsuRepository.save(ninjutsuNinjaToModify)).thenReturn(ninjutsuNinjaToModify);
-        when(mapper.toDTO(ninjutsuNinjaToModify)).thenReturn(expectedResponse);
-
-        CharacterResponseDTO response = characterService.increaseChakra(VALID_CHARACTER_ID, chakraRequestDTO);
-
-        assertNotNull(response);
-        assertEquals(expectedResponse.chakra(), response.chakra());
-
-        verify(ninjutsuRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(ninjutsuRepository, times(1)).save(ninjutsuNinjaToModify);
-        verify(mapper, times(1)).toDTO(ninjutsuNinjaToModify);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao aumentar Chakra para ID inexistente")
-    void shouldThrowResourceNotFoundExceptionWhenIncreaseChakraToInvalidId() {
-        when(ninjutsuRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                characterService.increaseChakra(INVALID_CHARACTER_ID, chakraRequestDTO)
-        );
-        assertEquals("Character with ID " + INVALID_CHARACTER_ID + " not found", exception.getMessage());
-
-        verify(ninjutsuRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao aumentar Chakra com NinjaType INVALID_TYPE")
-    void shouldThrowExceptionWhenIncreaseChakraWithInvalidNinjaType() {
-        ChakraRequestDTO invalidChakraRequest = new ChakraRequestDTO(
-                100,
-                NinjaType.INVALID_TYPE
-        );
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.increaseChakra(VALID_CHARACTER_ID, invalidChakraRequest)
-        );
-        assertEquals("Ninja type is invalid", exception.getMessage());
-
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve retornar as informações de exibição de um Personagem Genjutsu")
-    void shouldReturnDisplayInfoOfGenjutsuCharacter() {
-        GenjutsuNinja mockGenjutsuNinja = mock(GenjutsuNinja.class);
-
-        when(genjutsuRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(mockGenjutsuNinja));
-        when(mockGenjutsuNinja.displayInfo()).thenReturn("Display Info for Itachi Uchiha");
-
-        String displayInfo = characterService.getDisplayInfo(VALID_CHARACTER_ID, NinjaType.GENJUTSU);
-
-        assertNotNull(displayInfo);
-        assertEquals("Display Info for Itachi Uchiha", displayInfo);
-
-        verify(genjutsuRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(mockGenjutsuNinja, times(1)).displayInfo();
-        verifyNoMoreInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper, mockGenjutsuNinja);
-    }
-
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao obter Display Info para ID inexistente")
-    void shouldThrowResourceNotFoundExceptionWhenGetDisplayInfoForInvalidId() {
-        when(genjutsuRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                characterService.getDisplayInfo(INVALID_CHARACTER_ID, NinjaType.GENJUTSU)
-        );
-        assertEquals("Character with ID " + INVALID_CHARACTER_ID + " not found", exception.getMessage());
-
-        verify(genjutsuRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verifyNoMoreInteractions(genjutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao obter Display Info com NinjaType INVALID_TYPE")
-    void shouldThrowExceptionWhenGetDisplayInfoWithInvalidNinjaType() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.getDisplayInfo(VALID_CHARACTER_ID, NinjaType.INVALID_TYPE)
-        );
-        assertEquals("Ninja type is invalid", exception.getMessage());
-
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve retornar o uso de Jutsu de um Personagem Ninjutsu")
-    void shouldReturnUseJutsuOfNinjutsuCharacter() {
-        NinjutsuNinja mockNinjutsuNinja = mock(NinjutsuNinja.class);
-
-        when(ninjutsuRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(mockNinjutsuNinja));
-        when(mockNinjutsuNinja.useJutsu()).thenReturn("Naruto used Rasengan!");
-
-        String useJutsuResult = characterService.useJutsu(VALID_CHARACTER_ID, NinjaType.NINJUTSU);
-
-        assertNotNull(useJutsuResult);
-        assertEquals("Naruto used Rasengan!", useJutsuResult);
-
-        verify(ninjutsuRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(mockNinjutsuNinja, times(1)).useJutsu();
-        verifyNoMoreInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper, mockNinjutsuNinja);
-    }
-
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao usar Jutsu para ID inexistente")
-    void shouldThrowResourceNotFoundExceptionWhenUseJutsuForInvalidId() {
-        when(ninjutsuRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                characterService.useJutsu(INVALID_CHARACTER_ID, NinjaType.NINJUTSU)
-        );
-        assertEquals("Character with ID " + INVALID_CHARACTER_ID + " not found", exception.getMessage());
-
-        verify(ninjutsuRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao usar Jutsu com NinjaType INVALID_TYPE")
-    void shouldThrowExceptionWhenUseJutsuWithInvalidNinjaType() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.useJutsu(VALID_CHARACTER_ID, NinjaType.INVALID_TYPE)
-        );
-        assertEquals("Ninja type is invalid", exception.getMessage());
-
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve retornar o resultado da esquiva de um Personagem Taijutsu")
-    void shouldReturnDodgeCharacterOfTaijutsuCharacter() {
-        TaijutsuNinja mockTaijutsuNinja = mock(TaijutsuNinja.class);
-
-        when(taijutsuRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(mockTaijutsuNinja));
-        when(mockTaijutsuNinja.dodge()).thenReturn("Rock Lee dodged the attack with incredible speed!");
-
-        String dodgeResult = characterService.dodgeCharacter(VALID_CHARACTER_ID, NinjaType.TAIJUTSU);
-
-        assertNotNull(dodgeResult);
-        assertEquals("Rock Lee dodged the attack with incredible speed!", dodgeResult);
-
-        verify(taijutsuRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(mockTaijutsuNinja, times(1)).dodge();
-        verifyNoMoreInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper, mockTaijutsuNinja);
-    }
-
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao esquivar para ID inexistente")
-    void shouldThrowResourceNotFoundExceptionWhenDodgeCharacterForInvalidId() {
-        when(taijutsuRepository.findById(INVALID_CHARACTER_ID)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                characterService.dodgeCharacter(INVALID_CHARACTER_ID, NinjaType.TAIJUTSU)
-        );
-        assertEquals("Character with ID " + INVALID_CHARACTER_ID + " not found", exception.getMessage());
-
-        verify(taijutsuRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verifyNoMoreInteractions(taijutsuRepository, ninjutsuRepository, genjutsuRepository, mapper);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao esquivar com NinjaType INVALID_TYPE")
-    void shouldThrowExceptionWhenDodgeCharacterWithInvalidNinjaType() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                characterService.dodgeCharacter(VALID_CHARACTER_ID, NinjaType.INVALID_TYPE)
-        );
-        assertEquals("Ninja type is invalid", exception.getMessage());
-
-        verifyNoInteractions(genjutsuRepository, ninjutsuRepository, taijutsuRepository, mapper);
+        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
+        verify(characterRepository, times(1)).save(any(Character.class));
+        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
     }
 }

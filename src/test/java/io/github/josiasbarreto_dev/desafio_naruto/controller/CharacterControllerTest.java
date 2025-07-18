@@ -1,11 +1,11 @@
 package io.github.josiasbarreto_dev.desafio_naruto.controller;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.ChakraRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.controller.impl.CharacterController;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.*;
+import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Jutsu;
 import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
-import io.github.josiasbarreto_dev.desafio_naruto.service.CharacterService;
+import io.github.josiasbarreto_dev.desafio_naruto.service.impl.CharacterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,8 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,114 +31,84 @@ public class CharacterControllerTest {
     @Mock
     private CharacterService characterService;
 
-    private ChakraRequestDTO payloadChakraRequestDTO;
     private CharacterRequestDTO payloadRequestDTO;
     private CharacterRequestDTO payloadRequestWithNinjaTypeInvalid;
-    private JutsuRequestDTO payloadJutsuRequestDTO;
-    private CharacterResponseDTO payloadResponseDTO;
-    private CharacterResponseDTO payloadJutsuResponseDTO;
-    private CharacterResponseDTO payloadChakraResponseDTO;
+    private CharacterResponseDTO expectedCharacterJiraiya;
+    private CharacterResponseDTO expectedCharacterNaruto;
+    private List<CharacterResponseDTO> characterListResponseDTO;
+    private AttackRequestDTO requestAttackDTO;
+    private BattleResponseDTO battleResponseDTO;
 
-    private final Long VALID_CHARACTER_ID = 1L;
-    private final NinjaType NINJA_TYPE_TAIJUTSU = NinjaType.TAIJUTSU;
+    private static final Long VALID_CHARACTER_ID = 1L;
+    private static final Long INVALID_CHARACTER_ID = 10L;
+    private static final NinjaType NINJA_TYPE_TAIJUTSU = NinjaType.TAIJUTSU;
 
+    private static final Integer DEFAULT_CHAKRA = 100;
+    private static final Integer DEFAULT_LIFE = 100;
+    private static final Integer NARUTO_CHAKRA = 150;
+    private static final Integer NARUTO_LIFE = 200;
+
+    private static final Integer DAMAGE_HIGH = 80;
+    private static final Integer CHAKRA_COST_HIGH = 60;
+    private static final Integer DAMAGE_MEDIUM = 20;
+    private static final Integer CHAKRA_COST_MEDIUM = 30;
+    private static final Integer DAMAGE_ZERO = 0;
+    private static final Integer CHAKRA_COST_FULL = 100;
 
     @BeforeEach
     void setup() {
-        payloadRequestDTO = new CharacterRequestDTO(
-                "Naruto Uzumaki",
-                17,
-                "Konoha",
-                new ArrayList<>(Arrays.asList(
-                        "Shadow Clone Jutsu",
-                        "Rasengan",
-                        "Sage Mode",
-                        "Kurama Chakra Mode"
-                )),
-                1000,
-                NINJA_TYPE_TAIJUTSU
-        );
+        payloadRequestDTO = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_LIFE, NinjaType.TAIJUTSU);
+        payloadRequestWithNinjaTypeInvalid = buildCharacterRequestDTO("Jiraiya", getDefaultJutsusRequest(), DEFAULT_LIFE, NinjaType.INVALID_TYPE);
 
-        payloadRequestWithNinjaTypeInvalid = new CharacterRequestDTO(
-                "Naruto Uzumaki",
-                17,
-                "Konoha",
-                new ArrayList<>(Arrays.asList(
-                        "Shadow Clone Jutsu",
-                        "Rasengan",
-                        "Sage Mode",
-                        "Kurama Chakra Mode"
-                )),
-                1000,
-                NINJA_TYPE_TAIJUTSU
-        );
+        expectedCharacterJiraiya = buildCharacterResponseDTO(VALID_CHARACTER_ID, "Jiraiya", getDefaultJutsus(), DEFAULT_CHAKRA, DEFAULT_LIFE);
+        expectedCharacterNaruto = buildCharacterResponseDTO(2L, "Naruto Uzumaki", getDefaultJutsus(), NARUTO_CHAKRA, NARUTO_LIFE);
 
-        payloadResponseDTO = new CharacterResponseDTO(
-                1L,
-                "Naruto Uzumaki",
-                17,
-                "Konoha",
-                new ArrayList<>(Arrays.asList(
-                        "Shadow Clone Jutsu",
-                        "Rasengan",
-                        "Sage Mode",
-                        "Kurama Chakra Mode"
-                )),
-                1000,
-                NINJA_TYPE_TAIJUTSU
-        );
+        characterListResponseDTO = getCharacterListResponse();
 
-        payloadJutsuRequestDTO = new JutsuRequestDTO(
-                "Shouton",
-                NinjaType.TAIJUTSU
-        );
+        requestAttackDTO = new AttackRequestDTO("Jiraiya", "Naruto Uzumaki", "Rasengan");
 
-        payloadChakraRequestDTO = new ChakraRequestDTO(
-                500,
-                NINJA_TYPE_TAIJUTSU
-        );
+        battleResponseDTO = buildBattleResponse(expectedCharacterJiraiya, expectedCharacterNaruto);
+    }
 
-
-        payloadJutsuResponseDTO = new CharacterResponseDTO(
-                1L,
-                "Naruto Uzumaki",
-                17,
-                "Konoha",
-                new ArrayList<>(Arrays.asList(
-                        "Shadow Clone Jutsu",
-                        "Rasengan",
-                        "Sage Mode",
-                        "Kurama Chakra Mode",
-                        "Shouton"
-                )),
-                1000,
-                NINJA_TYPE_TAIJUTSU
+    private Map<String, Jutsu> getDefaultJutsus() {
+        return Map.of(
+                "Rasengan", new Jutsu(DAMAGE_HIGH, CHAKRA_COST_HIGH),
+                "Summoning Jutsu: Toad", new Jutsu(DAMAGE_MEDIUM, CHAKRA_COST_MEDIUM),
+                "Sage Mode", new Jutsu(DAMAGE_ZERO, CHAKRA_COST_FULL)
         );
+    }
 
-        payloadChakraResponseDTO = new CharacterResponseDTO(
-                1L,
-                "Naruto Uzumaki",
-                17,
-                "Konoha",
-                new ArrayList<>(Arrays.asList(
-                        "Shadow Clone Jutsu",
-                        "Rasengan",
-                        "Sage Mode",
-                        "Kurama Chakra Mode"
-                )),
-                1500,
-                NINJA_TYPE_TAIJUTSU
+    private Map<String, JutsuRequestDTO> getDefaultJutsusRequest() {
+        return Map.of(
+                "Rasengan", new JutsuRequestDTO(DAMAGE_HIGH, CHAKRA_COST_HIGH),
+                "Summoning Jutsu: Toad", new JutsuRequestDTO(DAMAGE_MEDIUM, CHAKRA_COST_MEDIUM),
+                "Sage Mode", new JutsuRequestDTO(DAMAGE_ZERO, CHAKRA_COST_FULL)
         );
+    }
+
+    private CharacterRequestDTO buildCharacterRequestDTO(String name, Map<String, JutsuRequestDTO> jutsus, Integer life, NinjaType type) {
+        return new CharacterRequestDTO(name, jutsus, life, type);
+    }
+
+    private CharacterResponseDTO buildCharacterResponseDTO(Long id, String name, Map<String, Jutsu> jutsus, Integer chakra, Integer life) {
+        return new CharacterResponseDTO(id, name, jutsus, chakra, life);
+    }
+
+    private List<CharacterResponseDTO> getCharacterListResponse() {
+        return List.of(expectedCharacterJiraiya, expectedCharacterNaruto);
+    }
+
+    private BattleResponseDTO buildBattleResponse(CharacterResponseDTO attacker, CharacterResponseDTO defender) {
+        return new BattleResponseDTO(attacker, defender);
     }
 
     @Test
     @DisplayName("Deve criar um Personagem e retornar o Status Code 201")
-    void shouldCreateCharacterAndReturnSuccess() {
-        when(characterService.createCharacter(payloadRequestDTO)).thenReturn(payloadResponseDTO);
+    void shouldCreateCharacterSuccessfullyAndReturn201Created() {
+        when(characterService.createCharacter(payloadRequestDTO)).thenReturn(expectedCharacterJiraiya);
         ResponseEntity<CharacterResponseDTO> response = characterController.createCharacter(payloadRequestDTO);
 
-        assertNotNull(response);
-        assertEquals(payloadResponseDTO, response.getBody());
+        assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         verify(characterService, times(1)).createCharacter(payloadRequestDTO);
     }
@@ -158,74 +128,109 @@ public class CharacterControllerTest {
     }
 
     @Test
-    @DisplayName("Deve adicionar novo jutsu ao array de jutsus e retornar sucesso")
-    void shouldAddNewJutsuToJutsuArrayAndReturnSuccess(){
-        when(characterService.addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO)).thenReturn(payloadJutsuResponseDTO);
+    @DisplayName("Deve listar todos os Personagens e retornar o Status Code 200")
+    void shouldListAllCharactersAndReturnOkStatus(){
+        when(characterService.listCharacter()).thenReturn(characterListResponseDTO);
 
-        ResponseEntity<CharacterResponseDTO> response = characterController.addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO);
+        ResponseEntity<List<CharacterResponseDTO>> response = characterController.listCharacters();
 
-        assertNotNull(response);
-        assertEquals(payloadJutsuResponseDTO, response.getBody());
+        assertEquals(characterListResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).addNewJutsu(VALID_CHARACTER_ID, payloadJutsuRequestDTO);
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        verify(characterService, times(1)).listCharacter();
     }
 
+    @Test
+    @DisplayName("Deve retornar um Ninja específico com status OK quando encontrado")
+    void shouldReturnCharacterByIdAnd200OkStatus(){
+        when(characterService.getCharacterById(VALID_CHARACTER_ID)).thenReturn(expectedCharacterJiraiya);
+
+        ResponseEntity<CharacterResponseDTO> response = characterController.getCharacterById(VALID_CHARACTER_ID);
+
+        assertEquals(expectedCharacterJiraiya, response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(characterService, times(1)).getCharacterById(VALID_CHARACTER_ID);
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma exceção quando o ID do Personagem não for encontrado")
+    void shouldThrowResourceNotFoundExceptionWhenCharacterIdIsNotFound() {
+        String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
+        when(characterService.getCharacterById(INVALID_CHARACTER_ID)).thenThrow(new ResourceNotFoundException(message));
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterController.getCharacterById(INVALID_CHARACTER_ID);
+        });
+
+        assertEquals(message, exception.getMessage());
+        verify(characterService, times(1)).getCharacterById(INVALID_CHARACTER_ID);
+    }
+
+    @Test
+    @DisplayName("Deve listar todos os Personagens com o Ninja Type Informado e retornar o Status Code 200")
+    void shouldListCharactersByNinjaTypeAndReturnOkStatus(){
+        when(characterService.listCharactersByType(NINJA_TYPE_TAIJUTSU)).thenReturn(characterListResponseDTO);
+
+        ResponseEntity<List<CharacterResponseDTO>> response = characterController.listCharactersByType(NINJA_TYPE_TAIJUTSU);
+
+        assertEquals(characterListResponseDTO, response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+    }
+
+    @Test
+    @DisplayName("Deve deletar Personagem com sucesso e retornar 204 No Content")
+    void shouldDeleteCharacterSuccessfullyAndReturn204NoContent(){
+        doNothing().when(characterService).deleteCharacterById(VALID_CHARACTER_ID);
+
+        ResponseEntity<Void> response = characterController.deleteCharacterById(VALID_CHARACTER_ID);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(characterService, times(1)).deleteCharacterById(VALID_CHARACTER_ID);
+    }
+
+    @Test
+    @DisplayName("Deve lançar ResourceNotFoundException ao tentar deletar Personagem inexistente")
+    void shouldThrowResourceNotFoundExceptionWhenDeletingNonExistentCharacter(){
+        String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
+        doThrow(new ResourceNotFoundException(message))
+                .when(characterService).deleteCharacterById(INVALID_CHARACTER_ID);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            characterController.deleteCharacterById(INVALID_CHARACTER_ID);
+        });
+
+        assertEquals(message, exception.getMessage());
+        verify(characterService, times(1)).deleteCharacterById(INVALID_CHARACTER_ID);
+    }
     @Test
     @DisplayName("Deve adicionar o novo chakra e retornar sucesso")
     void shouldAddNewChakraAndReturnSuccess(){
-        when(characterService.increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO)).thenReturn(payloadChakraResponseDTO);
+        Integer chakraAmount = 100;
 
-        ResponseEntity<CharacterResponseDTO> response = characterController.increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO);
+        when(characterService.addChakra(VALID_CHARACTER_ID, chakraAmount)).thenReturn(expectedCharacterJiraiya);
 
-        assertNotNull(response);
-        assertEquals(payloadChakraResponseDTO, response.getBody());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).increaseChakra(VALID_CHARACTER_ID, payloadChakraRequestDTO);
+        ResponseEntity<CharacterResponseDTO> response = characterController.addChakra(VALID_CHARACTER_ID, chakraAmount);
+
+        assertEquals(expectedCharacterJiraiya, response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(characterService, times(1)).addChakra(VALID_CHARACTER_ID, chakraAmount);
     }
+
 
     @Test
-    @DisplayName("Deve retornar as informações do personagem e status 200 OK")
-    void shouldReturnCharacterInfoAndOkStatus(){
-        String expectedContent = "Character{id=1, name='Might Guy', age=30, village='Konohagakure', jutsus=[Eight Inner Gates, Chidori], chakra=1700, ninjaType=TAIJUTSU}";
+    @DisplayName("Deve retornar Resultado da Batalha e Status 200 OK quando a Luta Ocorre.")
+    void shouldReturnBattleResultAnd200OkStatusWhenFightOccurs(){
+        when(characterService.fight(requestAttackDTO)).thenReturn(battleResponseDTO);
 
-        when(characterService.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
+        ResponseEntity<BattleResponseDTO> response = characterController.fight(requestAttackDTO);
 
-        ResponseEntity<String> response = characterController.getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
-
-        assertNotNull(response);
-        assertEquals(expectedContent, response.getBody());
+        assertEquals(battleResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).getDisplayInfo(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
+        verify(characterService, times(1)).fight(requestAttackDTO);
     }
-
-    @Test
-    @DisplayName("Deve exibir uma mensagem indicando que o personagem está usando um jutsu")
-    void shouldDisplayMessageWhenUsingJutsu(){
-        String expectedContent = "The character Might Guy unleashes a Taijutsu attack!";
-
-        when(characterService.useJutsu(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
-
-        ResponseEntity<String> response = characterController.useJutsuCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
-
-        assertNotNull(response);
-        assertEquals(expectedContent, response.getBody());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).useJutsu(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
-    }
-
-    @Test
-    @DisplayName("Deve exibir mensagem de desvio")
-    void shouldDisplayDodgeMessage(){
-        String expectedContent = "The attack was dodged using Taijutsu!";
-
-        when(characterService.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU)).thenReturn(expectedContent);
-
-        ResponseEntity<String> response = characterController.dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
-
-        assertNotNull(response);
-        assertEquals(expectedContent, response.getBody());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).dodgeCharacter(VALID_CHARACTER_ID, NINJA_TYPE_TAIJUTSU);
-    }
-
 }
