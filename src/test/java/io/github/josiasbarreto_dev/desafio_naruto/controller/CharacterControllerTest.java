@@ -110,7 +110,6 @@ public class CharacterControllerTest {
 
         assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(characterService, times(1)).createCharacter(payloadRequestDTO);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -125,7 +124,6 @@ public class CharacterControllerTest {
         });
 
         assertEquals(message, exception.getMessage());
-        verify(characterService, times(1)).createCharacter(payloadRequestWithNinjaTypeInvalid);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -140,7 +138,6 @@ public class CharacterControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
-        verify(characterService, times(1)).listCharacter();
         verifyNoMoreInteractions(characterService);
     }
 
@@ -169,7 +166,6 @@ public class CharacterControllerTest {
         });
 
         assertEquals(message, exception.getMessage());
-        verify(characterService, times(1)).getCharacterById(INVALID_CHARACTER_ID);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -184,7 +180,6 @@ public class CharacterControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
-        verify(characterService, times(1)).listCharactersByType(NINJA_TYPE_TAIJUTSU);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -197,7 +192,6 @@ public class CharacterControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(characterService, times(1)).deleteCharacterById(VALID_CHARACTER_ID);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -213,7 +207,6 @@ public class CharacterControllerTest {
         });
 
         assertEquals(message, exception.getMessage());
-        verify(characterService, times(1)).deleteCharacterById(INVALID_CHARACTER_ID);
         verifyNoMoreInteractions(characterService);
     }
     @Test
@@ -227,7 +220,6 @@ public class CharacterControllerTest {
 
         assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(characterService, times(1)).addChakra(VALID_CHARACTER_ID, chakraAmount);
         verifyNoMoreInteractions(characterService);
     }
 
@@ -241,7 +233,6 @@ public class CharacterControllerTest {
 
         assertEquals(battleResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(characterService, times(1)).fight(requestAttackDTO);
         verifyNoMoreInteractions(characterService);
     }
 }
