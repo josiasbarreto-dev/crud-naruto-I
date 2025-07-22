@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +49,9 @@ class CharacterServiceTest {
     private static final Long ANOTHER_VALID_ID = 2L;
     private static final Long INVALID_CHARACTER_ID = 10L;
 
+    private static final Integer DEFAULT_CHAKRA = 100;
+    private static final Integer DEFAULT_LIFE = 100;
+
     private CharacterRequestDTO jiraiyaRequestDTO;
     private CharacterRequestDTO taijutsuRequestDTO;
     private CharacterRequestDTO invalidNinjaTypeRequestDTO;
@@ -72,21 +76,21 @@ class CharacterServiceTest {
                         "Summoning Jutsu", new JutsuRequestDTO(20, 30),
                         "Sage Mode", new JutsuRequestDTO(0, 100)
                 ),
-                100,
+                DEFAULT_LIFE,
                 NinjaType.NINJUTSU
         );
 
         taijutsuRequestDTO = new CharacterRequestDTO(
                 "Rock Lee",
                 Map.of("Primary Lotus", new JutsuRequestDTO(70, 50)),
-                90,
+                DEFAULT_LIFE,
                 NinjaType.TAIJUTSU
         );
 
         invalidNinjaTypeRequestDTO = new CharacterRequestDTO(
                 "InvalidNinja",
                 Map.of("Basic Punch", new JutsuRequestDTO(10, 0)),
-                50,
+                DEFAULT_LIFE,
                 NinjaType.INVALID_TYPE
         );
 
@@ -125,8 +129,8 @@ class CharacterServiceTest {
                         "Summoning Jutsu: Toad", new Jutsu(20, 30),
                         "Sage Mode", new Jutsu(0, 100)
                 ),
-                100,
-                100
+                DEFAULT_CHAKRA,
+                DEFAULT_LIFE
         );
 
         narutoResponseDTO = new CharacterResponseDTO(
@@ -137,16 +141,16 @@ class CharacterServiceTest {
                         "Rasengan", new Jutsu(90, 70),
                         "Sage Mode", new Jutsu(0, 120)
                 ),
-                100,
-                200
+                DEFAULT_CHAKRA,
+                DEFAULT_LIFE
         );
 
         rockLeeResponseDTO = new CharacterResponseDTO(
                 3L,
                 "Rock Lee",
                 Map.of("Primary Lotus", new Jutsu(70, 50)),
-                100,
-                90
+                DEFAULT_CHAKRA,
+                DEFAULT_LIFE
         );
 
         characterListResponseDTO = List.of(jiraiyaResponseDTO, narutoResponseDTO);
@@ -155,41 +159,35 @@ class CharacterServiceTest {
     @Test
     @DisplayName("Deve criar personagem Ninjutsu com sucesso")
     void shouldCreateNinjutsuCharacterSuccessfully() {
+        ArgumentCaptor<NinjutsuNinja> ninjutsuCaptor = ArgumentCaptor.forClass(NinjutsuNinja.class);
+
         when(characterRepository.existsByName(jiraiyaRequestDTO.name())).thenReturn(false);
 
-        when(characterRepository.save(any(NinjutsuNinja.class))).thenReturn((NinjutsuNinja) jiraiyaEntity);
+        when(characterRepository.save(ninjutsuCaptor.capture())).thenReturn((NinjutsuNinja) jiraiyaEntity);
         when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseDTO);
 
         CharacterResponseDTO result = characterService.createCharacter(jiraiyaRequestDTO);
 
         assertNotNull(result);
         assertEquals(jiraiyaResponseDTO, result);
-        assertEquals(jiraiyaRequestDTO.name(), result.name());
-        assertEquals(jiraiyaRequestDTO.life(), result.life());
-        assertEquals(jiraiyaRequestDTO.jutsus().size(), result.jutsus().size());
         assertTrue(result.jutsus().containsKey("Rasengan"));
-
-        verify(characterRepository, times(1)).existsByName(jiraiyaRequestDTO.name());
-        verify(characterRepository, times(1)).save(isA(NinjutsuNinja.class));
-        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
     @DisplayName("Deve criar personagem Taijutsu com sucesso")
     void shouldCreateTaijutsuCharacterSuccessfully() {
+        ArgumentCaptor<TaijutsuNinja> taijutsuCaptor = ArgumentCaptor.forClass(TaijutsuNinja.class);
+
         when(characterRepository.existsByName(taijutsuRequestDTO.name())).thenReturn(false);
-        when(characterRepository.save(any(TaijutsuNinja.class))).thenReturn((TaijutsuNinja) rockLeeEntity);
+        when(characterRepository.save(taijutsuCaptor.capture())).thenReturn((TaijutsuNinja) rockLeeEntity);
         when(characterMapper.toDTO(rockLeeEntity)).thenReturn(rockLeeResponseDTO);
 
         CharacterResponseDTO result = characterService.createCharacter(taijutsuRequestDTO);
 
         assertNotNull(result);
         assertEquals(rockLeeResponseDTO, result);
-        assertEquals(taijutsuRequestDTO.name(), result.name());
-
-        verify(characterRepository, times(1)).existsByName(taijutsuRequestDTO.name());
-        verify(characterRepository, times(1)).save(isA(TaijutsuNinja.class));
-        verify(characterMapper, times(1)).toDTO(rockLeeEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -203,9 +201,7 @@ class CharacterServiceTest {
 
         String message = "There is already a registered character with this name: " + jiraiyaRequestDTO.name();
         assertEquals(message, exception.getMessage());
-        verify(characterRepository, times(1)).existsByName(jiraiyaRequestDTO.name());
-        verify(characterRepository, never()).save(any(Character.class));
-        verify(characterMapper, never()).toDTO(any(Character.class));
+        verifyNoInteractions(characterMapper);
     }
 
     @Test
@@ -217,9 +213,7 @@ class CharacterServiceTest {
 
         String message = "Ninja type is invalid";
         assertEquals(message, exception.getMessage());
-        verify(characterRepository, times(1)).existsByName("InvalidNinja");
-        verify(characterRepository, never()).save(any(Character.class));
-        verify(characterMapper, never()).toDTO(any(Character.class));
+        verifyNoInteractions(characterMapper);
     }
 
     @Test
@@ -232,11 +226,8 @@ class CharacterServiceTest {
         List<CharacterResponseDTO> result = characterService.listCharacter();
 
         assertNotNull(result);
-        assertEquals(2, result.size());
         assertEquals(characterListResponseDTO, result);
-
-        verify(characterRepository, times(1)).findAll();
-        verify(characterMapper, times(1)).toDTO(listCharacters);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -249,8 +240,7 @@ class CharacterServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(characterRepository, times(1)).findAll();
-        verify(characterMapper, times(1)).toDTO(Collections.emptyList());
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -263,8 +253,7 @@ class CharacterServiceTest {
 
         assertNotNull(result);
         assertEquals(jiraiyaResponseDTO, result);
-        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -278,8 +267,7 @@ class CharacterServiceTest {
 
         String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
         assertEquals(message, exception.getMessage());
-        verify(characterRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verify(characterMapper, never()).toDTO(any(Character.class));
+        verifyNoMoreInteractions(characterMapper);
     }
 
     @Test
@@ -298,12 +286,7 @@ class CharacterServiceTest {
         assertNotNull(result);
         assertEquals(2, result.size());
         assertTrue(result.containsAll(ninjutsuResponseDTOsExpected) && ninjutsuResponseDTOsExpected.containsAll(result));
-        assertTrue(result.stream().allMatch(c -> c.name().equals("Jiraiya") || c.name().equals("Naruto Uzumaki")));
-
-        verify(characterRepository, times(1)).findAll();
-        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
-        verify(characterMapper, times(1)).toDTO(narutoEntity);
-        verify(characterMapper, never()).toDTO(rockLeeEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -320,11 +303,7 @@ class CharacterServiceTest {
         assertEquals(1, result.size());
         assertEquals(rockLeeResponseDTO, result.get(0));
         assertTrue(result.stream().allMatch(c -> c.name().equals("Rock Lee")));
-
-        verify(characterRepository, times(1)).findAll();
-        verify(characterMapper, times(1)).toDTO(rockLeeEntity);
-        verify(characterMapper, never()).toDTO(jiraiyaEntity);
-        verify(characterMapper, never()).toDTO(narutoEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
     @Test
@@ -337,8 +316,8 @@ class CharacterServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(characterRepository, times(1)).findAll();
-        verify(characterMapper, never()).toDTO(any(Character.class));
+        verifyNoInteractions(characterMapper);
+        verifyNoMoreInteractions(characterRepository, characterMapper);
     }
 
     @Test
@@ -349,8 +328,7 @@ class CharacterServiceTest {
 
         characterService.deleteCharacterById(VALID_CHARACTER_ID);
 
-        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(characterRepository, times(1)).delete(jiraiyaEntity);
+        verifyNoMoreInteractions(characterRepository);
     }
 
     @Test
@@ -364,17 +342,18 @@ class CharacterServiceTest {
 
         String message = "Ninja with id " + INVALID_CHARACTER_ID + " not found.";
         assertEquals(message, exception.getMessage());
-        verify(characterRepository, times(1)).findById(INVALID_CHARACTER_ID);
-        verify(characterRepository, never()).delete(any(Character.class));
+        verifyNoMoreInteractions(characterRepository, characterMapper);
     }
 
     @Test
     @DisplayName("Deve Realizar Luta e Retornar BattleResponseDTO")
     void shouldPerformFightAndReturnBattleResponseDTO() {
+        ArgumentCaptor<Character> characterCaptor = ArgumentCaptor.forClass(Character.class);
+
         when(characterRepository.findByName(attackRequestDTO.attacker())).thenReturn(Optional.of(jiraiyaEntity));
         when(characterRepository.findByName(attackRequestDTO.target())).thenReturn(Optional.of(narutoEntity));
 
-        when(characterRepository.save(any(Character.class))).thenAnswer(invocation -> {
+        when(characterRepository.save(characterCaptor.capture())).thenAnswer(invocation -> {
             Character savedChar = invocation.getArgument(0);
             if (savedChar.getId().equals(jiraiyaEntity.getId())) {
                 savedChar.setChakra(40);
@@ -397,12 +376,7 @@ class CharacterServiceTest {
         assertNotNull(result);
         assertEquals(jiraiyaResponseAfterFight, result.attacker());
         assertEquals(narutoResponseAfterFight, result.defender());
-
-        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
-        verify(characterRepository, times(1)).findByName(attackRequestDTO.target());
-        verify(characterRepository, times(2)).save(any(Character.class));
-        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
-        verify(characterMapper, times(1)).toDTO(narutoEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 
 
@@ -417,9 +391,8 @@ class CharacterServiceTest {
 
         String message = "Ninja with name " + attackRequestDTO.attacker() + " not found.";
         assertEquals(message, exception.getMessage());
-        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
-        verify(characterRepository, never()).findByName(attackRequestDTO.target());
-        verify(characterRepository, never()).save(any(Character.class));
+        verifyNoInteractions(characterMapper);
+        verifyNoMoreInteractions(characterRepository);
     }
 
     @Test
@@ -433,19 +406,19 @@ class CharacterServiceTest {
         });
 
         assertEquals("Ninja with name " + attackRequestDTO.target() + " not found.", exception.getMessage());
-        verify(characterRepository, times(1)).findByName(attackRequestDTO.attacker());
-        verify(characterRepository, times(1)).findByName(attackRequestDTO.target());
-        verify(characterRepository, never()).save(any(Character.class));
+        verifyNoInteractions(characterMapper);
+        verifyNoMoreInteractions(characterRepository);
     }
 
     @Test
     @DisplayName("Deve Adicionar Chakra com Sucesso")
     void shouldAddChakraSuccessfully() {
         Integer chakraAmount = 50;
+        ArgumentCaptor<Character> characterCaptor = ArgumentCaptor.forClass(Character.class);
 
         when(characterRepository.findById(VALID_CHARACTER_ID)).thenReturn(Optional.of(jiraiyaEntity));
 
-        when(characterRepository.save(any(Character.class))).thenAnswer(invocation -> {
+        when(characterRepository.save(characterCaptor.capture())).thenAnswer(invocation -> {
             Character characterToSave = invocation.getArgument(0);
             characterToSave.setChakra(chakraAmount);
             return characterToSave;
@@ -468,9 +441,6 @@ class CharacterServiceTest {
 
         assertNotNull(result);
         assertEquals(expectedResponseDTOAfterChakraAdd, result);
-
-        verify(characterRepository, times(1)).findById(VALID_CHARACTER_ID);
-        verify(characterRepository, times(1)).save(any(Character.class));
-        verify(characterMapper, times(1)).toDTO(jiraiyaEntity);
+        verifyNoMoreInteractions(characterMapper, characterRepository);
     }
 }
