@@ -106,11 +106,12 @@ public class CharacterControllerTest {
     @DisplayName("Deve criar um Personagem e retornar o Status Code 201")
     void shouldCreateCharacterSuccessfullyAndReturn201Created() {
         when(characterService.createCharacter(payloadRequestDTO)).thenReturn(expectedCharacterJiraiya);
-        ResponseEntity<CharacterResponseDTO> response = characterController.createCharacter(payloadRequestDTO);
+        ResponseEntity<CharacterResponseDTO> response = characterController.create(payloadRequestDTO);
 
         assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         verify(characterService, times(1)).createCharacter(payloadRequestDTO);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -120,11 +121,12 @@ public class CharacterControllerTest {
         when(characterService.createCharacter(payloadRequestWithNinjaTypeInvalid)).thenThrow(new IllegalArgumentException(message));
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            characterController.createCharacter(payloadRequestWithNinjaTypeInvalid);
+            characterController.create(payloadRequestWithNinjaTypeInvalid);
         });
 
         assertEquals(message, exception.getMessage());
         verify(characterService, times(1)).createCharacter(payloadRequestWithNinjaTypeInvalid);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -132,13 +134,14 @@ public class CharacterControllerTest {
     void shouldListAllCharactersAndReturnOkStatus(){
         when(characterService.listCharacter()).thenReturn(characterListResponseDTO);
 
-        ResponseEntity<List<CharacterResponseDTO>> response = characterController.listCharacters();
+        ResponseEntity<List<CharacterResponseDTO>> response = characterController.list();
 
         assertEquals(characterListResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
         verify(characterService, times(1)).listCharacter();
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -146,12 +149,13 @@ public class CharacterControllerTest {
     void shouldReturnCharacterByIdAnd200OkStatus(){
         when(characterService.getCharacterById(VALID_CHARACTER_ID)).thenReturn(expectedCharacterJiraiya);
 
-        ResponseEntity<CharacterResponseDTO> response = characterController.getCharacterById(VALID_CHARACTER_ID);
+        ResponseEntity<CharacterResponseDTO> response = characterController.get(VALID_CHARACTER_ID);
 
         assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         verify(characterService, times(1)).getCharacterById(VALID_CHARACTER_ID);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -161,11 +165,12 @@ public class CharacterControllerTest {
         when(characterService.getCharacterById(INVALID_CHARACTER_ID)).thenThrow(new ResourceNotFoundException(message));
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            characterController.getCharacterById(INVALID_CHARACTER_ID);
+            characterController.get(INVALID_CHARACTER_ID);
         });
 
         assertEquals(message, exception.getMessage());
         verify(characterService, times(1)).getCharacterById(INVALID_CHARACTER_ID);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -173,12 +178,14 @@ public class CharacterControllerTest {
     void shouldListCharactersByNinjaTypeAndReturnOkStatus(){
         when(characterService.listCharactersByType(NINJA_TYPE_TAIJUTSU)).thenReturn(characterListResponseDTO);
 
-        ResponseEntity<List<CharacterResponseDTO>> response = characterController.listCharactersByType(NINJA_TYPE_TAIJUTSU);
+        ResponseEntity<List<CharacterResponseDTO>> response = characterController.list(NINJA_TYPE_TAIJUTSU);
 
         assertEquals(characterListResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
+        verify(characterService, times(1)).listCharactersByType(NINJA_TYPE_TAIJUTSU);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -186,11 +193,12 @@ public class CharacterControllerTest {
     void shouldDeleteCharacterSuccessfullyAndReturn204NoContent(){
         doNothing().when(characterService).deleteCharacterById(VALID_CHARACTER_ID);
 
-        ResponseEntity<Void> response = characterController.deleteCharacterById(VALID_CHARACTER_ID);
+        ResponseEntity<Void> response = characterController.delete(VALID_CHARACTER_ID);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(characterService, times(1)).deleteCharacterById(VALID_CHARACTER_ID);
+        verifyNoMoreInteractions(characterService);
     }
 
     @Test
@@ -201,11 +209,12 @@ public class CharacterControllerTest {
                 .when(characterService).deleteCharacterById(INVALID_CHARACTER_ID);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            characterController.deleteCharacterById(INVALID_CHARACTER_ID);
+            characterController.delete(INVALID_CHARACTER_ID);
         });
 
         assertEquals(message, exception.getMessage());
         verify(characterService, times(1)).deleteCharacterById(INVALID_CHARACTER_ID);
+        verifyNoMoreInteractions(characterService);
     }
     @Test
     @DisplayName("Deve adicionar o novo chakra e retornar sucesso")
@@ -219,6 +228,7 @@ public class CharacterControllerTest {
         assertEquals(expectedCharacterJiraiya, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         verify(characterService, times(1)).addChakra(VALID_CHARACTER_ID, chakraAmount);
+        verifyNoMoreInteractions(characterService);
     }
 
 
@@ -232,5 +242,6 @@ public class CharacterControllerTest {
         assertEquals(battleResponseDTO, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(characterService, times(1)).fight(requestAttackDTO);
+        verifyNoMoreInteractions(characterService);
     }
 }
