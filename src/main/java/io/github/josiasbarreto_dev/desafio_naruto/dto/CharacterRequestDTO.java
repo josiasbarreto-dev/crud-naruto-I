@@ -4,7 +4,7 @@ import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
-import java.util.Map;
+import java.util.List;
 
 public record CharacterRequestDTO(
         @NotBlank(message = "Name is required.")
@@ -12,10 +12,8 @@ public record CharacterRequestDTO(
         @Pattern(regexp = "^[A-Z]+(.)*", message = "Name must start with an uppercase letter and can only contain letters and spaces.")
         String name,
 
-        @NotNull(message = "Jutsus cannot be null.")
-        @NotEmpty(message = "The jutsu map cannot be empty.")
         @Valid
-        Map<String, JutsuRequestDTO> jutsus,
+        List<JutsuRequestDTO> jutsus,
 
         @NotNull(message = "Life is required.")
         @Positive(message = "Life must be a positive integer.")
@@ -23,4 +21,5 @@ public record CharacterRequestDTO(
 
         @NotNull(message = "Ninja is required.")
         NinjaType ninjaType
-){}
+) {
+}
