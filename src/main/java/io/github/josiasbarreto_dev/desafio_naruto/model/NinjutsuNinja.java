@@ -18,12 +18,17 @@ public class NinjutsuNinja extends Character {
 
     @Override
     public void useJutsu(String jutsuName, Character adversaryNinja){
-        Jutsu jutsu = jutsus.get(jutsuName);
-        if(jutsu == null){
-            throw new JutsuNotFoundException(name + " doesn't know the jutsu: " + jutsuName);
-        }
-        if(chakra < jutsu.getChakraConsumption()){
-            throw new InsufficientChakraException(name + " doesn't have enough chakra to use " + jutsuName + ". Required: " + jutsu.getChakraConsumption() + ", Available: " + chakra);
+        Jutsu jutsu = jutsus.stream()
+                .filter(j -> j.getName().equalsIgnoreCase(jutsuName))
+                .findFirst()
+                .orElseThrow(() -> new JutsuNotFoundException(
+                        name + " doesn't know the jutsu: " + jutsuName
+                ));
+
+        if (chakra < jutsu.getChakraConsumption()) {
+            throw new InsufficientChakraException(
+                    name + " doesn't have enough chakra to use " + jutsuName
+            );
         }
 
         chakra -= jutsu.getChakraConsumption();
@@ -39,5 +44,10 @@ public class NinjutsuNinja extends Character {
             loseLife(jutsu.getDamage());
             System.out.println(name + " got hit and lost " + jutsu.getDamage() + " of life.");
         }
+    }
+
+    @Override
+    public NinjaType getType() {
+        return NinjaType.NINJUTSU;
     }
 }
