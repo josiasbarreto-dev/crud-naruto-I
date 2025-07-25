@@ -90,7 +90,6 @@ Adicione observações importantes para o revisor, como:
 ## 👤 Autor
 
 - Nome: @josiasbarreto-dev
-- Time: [Backend / Frontend / DevOps / QA / etc.]
 
 ---
 
