@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "character")
-@Table(name = "character")
+@Table(name = "characters")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ninjaType")
 @Getter
@@ -51,6 +51,13 @@ public abstract class Character{
         if(this.life < 0){
             this.life = 0;
         }
+    }
+
+    public void setChakra(Integer chakra) {
+        if (chakra < 0) {
+            throw new IllegalArgumentException("Chakra cannot be negative.");
+        }
+        this.chakra += chakra;
     }
 
     public abstract void useJutsu(String jutsuName, Character adversaryNinja);
