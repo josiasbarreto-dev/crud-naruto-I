@@ -1,20 +1,13 @@
-package io.github.josiasbarreto_dev.desafio_naruto.service;
+package io.github.josiasbarreto_dev.desafio_naruto.service.impl;
 
-import io.github.josiasbarreto_dev.desafio_naruto.dto.AttackRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.BattleResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterRequestDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
-import io.github.josiasbarreto_dev.desafio_naruto.dto.JutsuRequestDTO;
+import io.github.josiasbarreto_dev.desafio_naruto.dto.*;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.NameAlreadyExistsException;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
+import io.github.josiasbarreto_dev.desafio_naruto.model.*;
 import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
-import io.github.josiasbarreto_dev.desafio_naruto.model.Jutsu;
-import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
-import io.github.josiasbarreto_dev.desafio_naruto.model.NinjutsuNinja;
-import io.github.josiasbarreto_dev.desafio_naruto.model.TaijutsuNinja;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.CharacterRepository;
-import io.github.josiasbarreto_dev.desafio_naruto.service.impl.CharacterService;
+import io.github.josiasbarreto_dev.desafio_naruto.service.strategy.NinjaFactoryContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,6 +36,9 @@ class CharacterServiceTest {
 
     @Mock
     private CharacterMapper characterMapper;
+
+    @Mock
+    private NinjaFactoryContext ninjaFactoryContext;
 
     private static final Long VALID_CHARACTER_ID = 1L;
     private static final Long ANOTHER_VALID_ID = 2L;
@@ -71,10 +66,10 @@ class CharacterServiceTest {
     void setUp() {
         jiraiyaRequestDTO = new CharacterRequestDTO(
                 "Jiraiya",
-                Map.of(
-                        "Rasengan", new JutsuRequestDTO(80, 60),
-                        "Summoning Jutsu", new JutsuRequestDTO(20, 30),
-                        "Sage Mode", new JutsuRequestDTO(0, 100)
+                List.of(
+                        new JutsuRequestDTO("Rasengan", 80, 60),
+                        new JutsuRequestDTO("Summoning Jutsu", 20, 30),
+                        new JutsuRequestDTO("Sage Mode", 0, 100)
                 ),
                 DEFAULT_LIFE,
                 NinjaType.NINJUTSU
@@ -82,14 +77,14 @@ class CharacterServiceTest {
 
         taijutsuRequestDTO = new CharacterRequestDTO(
                 "Rock Lee",
-                Map.of("Primary Lotus", new JutsuRequestDTO(70, 50)),
+                List.of(new JutsuRequestDTO("Primary Lotus", 70, 50)),
                 DEFAULT_LIFE,
                 NinjaType.TAIJUTSU
         );
 
         invalidNinjaTypeRequestDTO = new CharacterRequestDTO(
                 "InvalidNinja",
-                Map.of("Basic Punch", new JutsuRequestDTO(10, 0)),
+                List.of(new JutsuRequestDTO("Basic Punch", 10, 0)),
                 DEFAULT_LIFE,
                 NinjaType.INVALID_TYPE
         );
@@ -102,32 +97,32 @@ class CharacterServiceTest {
 
         jiraiyaEntity = new NinjutsuNinja("Jiraiya", 100);
         jiraiyaEntity.setId(VALID_CHARACTER_ID);
-        jiraiyaEntity.addJutsu("Rasengan", new Jutsu(80, 60));
-        jiraiyaEntity.addJutsu("Summoning Jutsu: Toad", new Jutsu(20, 30));
-        jiraiyaEntity.addJutsu("Sage Mode", new Jutsu(0, 100));
+        jiraiyaEntity.addJutsu(new Jutsu("Rasengan", 80, 60));
+        jiraiyaEntity.addJutsu(new Jutsu("Summoning Jutsu: Toad", 20, 30));
+        jiraiyaEntity.addJutsu(new Jutsu("Sage Mode", 0, 100));
 
 
 
         narutoEntity = new NinjutsuNinja("Naruto Uzumaki", 150);
         narutoEntity.setId(ANOTHER_VALID_ID);
-        narutoEntity.addJutsu("Shadow Clone Jutsu", new Jutsu(50, 40));
-        narutoEntity.addJutsu("Rasengan", new Jutsu(90, 70));
-        narutoEntity.addJutsu("Sage Mode", new Jutsu(0, 120));
+        narutoEntity.addJutsu(new Jutsu("Shadow Clone Jutsu", 50, 40));
+        narutoEntity.addJutsu(new Jutsu("Rasengan", 90, 70));
+        narutoEntity.addJutsu(new Jutsu("Sage Mode", 0, 120));
 
         narutoEntity.setLife(150);
 
         rockLeeEntity = new TaijutsuNinja("Rock Lee", 90);
         rockLeeEntity.setId(3L);
-        rockLeeEntity.addJutsu("Primary Lotus", new Jutsu(70, 50));
+        rockLeeEntity.addJutsu(new Jutsu("Primary Lotus", 70, 50));
 
 
         jiraiyaResponseDTO = new CharacterResponseDTO(
                 VALID_CHARACTER_ID,
                 "Jiraiya",
-                Map.of(
-                        "Rasengan", new Jutsu(80, 60),
-                        "Summoning Jutsu: Toad", new Jutsu(20, 30),
-                        "Sage Mode", new Jutsu(0, 100)
+                List.of(
+                        new JutsuResponseDTO(1L, "Rasengan", 80, 60),
+                        new JutsuResponseDTO(2L, "Summoning Jutsu: Toad", 20, 30),
+                        new JutsuResponseDTO(3L, "Sage Mode", 0, 100)
                 ),
                 DEFAULT_CHAKRA,
                 DEFAULT_LIFE
@@ -136,10 +131,10 @@ class CharacterServiceTest {
         narutoResponseDTO = new CharacterResponseDTO(
                 ANOTHER_VALID_ID,
                 "Naruto Uzumaki",
-                Map.of(
-                        "Shadow Clone Jutsu", new Jutsu(50, 40),
-                        "Rasengan", new Jutsu(90, 70),
-                        "Sage Mode", new Jutsu(0, 120)
+                List.of(
+                        new JutsuResponseDTO(1L, "Shadow Clone Jutsu", 50, 40),
+                        new JutsuResponseDTO(2L, "Rasengan", 90, 70),
+                        new JutsuResponseDTO(3L, "Sage Mode", 0, 120)
                 ),
                 DEFAULT_CHAKRA,
                 DEFAULT_LIFE
@@ -148,7 +143,7 @@ class CharacterServiceTest {
         rockLeeResponseDTO = new CharacterResponseDTO(
                 3L,
                 "Rock Lee",
-                Map.of("Primary Lotus", new Jutsu(70, 50)),
+                List.of(new JutsuResponseDTO(1L, "Primary Lotus", 70, 50)),
                 DEFAULT_CHAKRA,
                 DEFAULT_LIFE
         );
@@ -159,35 +154,45 @@ class CharacterServiceTest {
     @Test
     @DisplayName("Deve criar personagem Ninjutsu com sucesso")
     void shouldCreateNinjutsuCharacterSuccessfully() {
-        ArgumentCaptor<NinjutsuNinja> ninjutsuCaptor = ArgumentCaptor.forClass(NinjutsuNinja.class);
+        ArgumentCaptor<Character> characterCaptor = ArgumentCaptor.forClass(Character.class);
 
         when(characterRepository.existsByName(jiraiyaRequestDTO.name())).thenReturn(false);
+        when(ninjaFactoryContext.create(
+                eq(jiraiyaRequestDTO.ninjaType()),
+                eq(jiraiyaRequestDTO.name()),
+                eq(jiraiyaRequestDTO.life())
+        )).thenReturn(jiraiyaEntity);
 
-        when(characterRepository.save(ninjutsuCaptor.capture())).thenReturn((NinjutsuNinja) jiraiyaEntity);
+        when(characterRepository.save(characterCaptor.capture())).thenReturn(jiraiyaEntity);
+
         when(characterMapper.toDTO(jiraiyaEntity)).thenReturn(jiraiyaResponseDTO);
 
         CharacterResponseDTO result = characterService.createCharacter(jiraiyaRequestDTO);
 
         assertNotNull(result);
         assertEquals(jiraiyaResponseDTO, result);
-        assertTrue(result.jutsus().containsKey("Rasengan"));
-        verifyNoMoreInteractions(characterMapper, characterRepository);
+        verifyNoMoreInteractions(characterMapper, characterRepository, ninjaFactoryContext);
     }
 
     @Test
     @DisplayName("Deve criar personagem Taijutsu com sucesso")
     void shouldCreateTaijutsuCharacterSuccessfully() {
-        ArgumentCaptor<TaijutsuNinja> taijutsuCaptor = ArgumentCaptor.forClass(TaijutsuNinja.class);
+        ArgumentCaptor<Character> characterCaptor = ArgumentCaptor.forClass(Character.class);
 
         when(characterRepository.existsByName(taijutsuRequestDTO.name())).thenReturn(false);
-        when(characterRepository.save(taijutsuCaptor.capture())).thenReturn((TaijutsuNinja) rockLeeEntity);
+        when(ninjaFactoryContext.create(
+                eq(taijutsuRequestDTO.ninjaType()),
+                eq(taijutsuRequestDTO.name()),
+                eq(taijutsuRequestDTO.life())
+        )).thenReturn(rockLeeEntity);
+        when(characterRepository.save(characterCaptor.capture())).thenReturn(rockLeeEntity);
         when(characterMapper.toDTO(rockLeeEntity)).thenReturn(rockLeeResponseDTO);
 
         CharacterResponseDTO result = characterService.createCharacter(taijutsuRequestDTO);
 
         assertNotNull(result);
         assertEquals(rockLeeResponseDTO, result);
-        verifyNoMoreInteractions(characterMapper, characterRepository);
+        verifyNoMoreInteractions(characterMapper, characterRepository, ninjaFactoryContext);
     }
 
     @Test
@@ -207,13 +212,23 @@ class CharacterServiceTest {
     @Test
     @DisplayName("Deve lançar IllegalArgumentException quando tipo de ninja for inválido na criação")
     void shouldThrowIllegalArgumentExceptionWhenNinjaTypeIsInvalidOnCreation() {
+        when(characterRepository.existsByName(invalidNinjaTypeRequestDTO.name())).thenReturn(false);
+
+        when(ninjaFactoryContext.create(
+                invalidNinjaTypeRequestDTO.ninjaType(),
+                invalidNinjaTypeRequestDTO.name(),
+                invalidNinjaTypeRequestDTO.life()
+        )).thenThrow(new IllegalArgumentException(
+                "No strategy found for ninja type: " + invalidNinjaTypeRequestDTO.ninjaType()
+        ));
+
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             characterService.createCharacter(invalidNinjaTypeRequestDTO);
         });
 
-        String message = "Ninja type is invalid";
-        assertEquals(message, exception.getMessage());
-        verifyNoInteractions(characterMapper);
+        String expectedMessage = "No strategy found for ninja type: " + invalidNinjaTypeRequestDTO.ninjaType();
+        assertEquals(expectedMessage, exception.getMessage());
+        verifyNoMoreInteractions(characterRepository, characterMapper, ninjaFactoryContext);
     }
 
     @Test
@@ -221,7 +236,7 @@ class CharacterServiceTest {
     void shouldListAllCharactersSuccessfully() {
         List<Character> listCharacters = List.of(jiraiyaEntity, narutoEntity);
         when(characterRepository.findAll()).thenReturn(listCharacters);
-        when(characterMapper.toDTO(listCharacters)).thenReturn(characterListResponseDTO);
+        when(characterMapper.toDTOCharacters(listCharacters)).thenReturn(characterListResponseDTO);
 
         List<CharacterResponseDTO> result = characterService.listCharacter();
 
@@ -234,7 +249,7 @@ class CharacterServiceTest {
     @DisplayName("Deve Retornar Lista Vazia Quando Nenhum Personagem Existir")
     void shouldReturnEmptyListWhenNoCharactersExist() {
         when(characterRepository.findAll()).thenReturn(Collections.emptyList());
-        when(characterMapper.toDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
+        when(characterMapper.toDTOCharacters(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         List<CharacterResponseDTO> result = characterService.listCharacter();
 
@@ -427,10 +442,10 @@ class CharacterServiceTest {
         CharacterResponseDTO expectedResponseDTOAfterChakraAdd = new CharacterResponseDTO(
                 VALID_CHARACTER_ID,
                 "Jiraiya",
-                Map.of(
-                        "Rasengan", new Jutsu(80, 60),
-                        "Summoning Jutsu: Toad", new Jutsu(20, 30),
-                        "Sage Mode", new Jutsu(0, 100)
+                List.of(
+                        new JutsuResponseDTO(1L,"Rasengan", 80, 60),
+                        new JutsuResponseDTO(2L, "Summoning Jutsu: Toad", 20, 30),
+                        new JutsuResponseDTO(3L, "Sage Mode", 0, 100)
                 ),
                 100,
                 chakraAmount
