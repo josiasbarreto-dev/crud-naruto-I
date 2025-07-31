@@ -12,3 +12,5 @@ log/
 # Ignorar arquivos temporários ou específicos do SO
 .DS_Store
 Thumbs.db
+
+.env
