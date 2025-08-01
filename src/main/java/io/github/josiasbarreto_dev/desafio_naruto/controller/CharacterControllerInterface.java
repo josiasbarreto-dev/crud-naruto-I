@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/character")
+@RequestMapping("/api/v1/character")
 @Tag(name = "API Naruto Character Battle", description = "Endpoints for managing characters in the Naruto universe")
 public interface CharacterControllerInterface {
 

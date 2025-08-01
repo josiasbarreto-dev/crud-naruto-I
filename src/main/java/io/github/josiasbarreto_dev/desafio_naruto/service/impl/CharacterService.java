@@ -7,10 +7,12 @@ import io.github.josiasbarreto_dev.desafio_naruto.dto.CharacterResponseDTO;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.NameAlreadyExistsException;
 import io.github.josiasbarreto_dev.desafio_naruto.exception.ResourceNotFoundException;
 import io.github.josiasbarreto_dev.desafio_naruto.mapper.CharacterMapper;
-import io.github.josiasbarreto_dev.desafio_naruto.model.*;
 import io.github.josiasbarreto_dev.desafio_naruto.model.Character;
+import io.github.josiasbarreto_dev.desafio_naruto.model.Jutsu;
+import io.github.josiasbarreto_dev.desafio_naruto.model.NinjaType;
 import io.github.josiasbarreto_dev.desafio_naruto.repository.CharacterRepository;
 import io.github.josiasbarreto_dev.desafio_naruto.service.CharacterServiceInterface;
+import io.github.josiasbarreto_dev.desafio_naruto.service.strategy.NinjaFactoryContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,10 +21,13 @@ import java.util.List;
 public class CharacterService implements CharacterServiceInterface {
     private final CharacterRepository repository;
     private final CharacterMapper mapper;
+    private final NinjaFactoryContext ninjaFactoryContext;
 
-    public CharacterService(CharacterRepository repository, CharacterMapper mapper) {
+
+    public CharacterService(CharacterRepository repository, CharacterMapper mapper, NinjaFactoryContext ninjaFactoryContext) {
         this.repository = repository;
         this.mapper = mapper;
+        this.ninjaFactoryContext = ninjaFactoryContext;
     }
 
     @Override
@@ -30,17 +35,22 @@ public class CharacterService implements CharacterServiceInterface {
         if (repository.existsByName(requestDTO.name())) {
             throw new NameAlreadyExistsException("There is already a registered character with this name: " + requestDTO.name());
         }
-        Character character = switch (requestDTO.ninjaType()) {
-            case NINJUTSU -> new NinjutsuNinja(requestDTO.name(), requestDTO.life());
-            case TAIJUTSU -> new TaijutsuNinja(requestDTO.name(), requestDTO.life());
-            default -> throw new IllegalArgumentException("Ninja type is invalid");
-        };
+
+        Character character = ninjaFactoryContext.create(
+                requestDTO.ninjaType(),
+                requestDTO.name(),
+                requestDTO.life()
+        );
 
         if (requestDTO.jutsus() != null) {
-            requestDTO.jutsus().forEach((jutsuName, jutsuDTO) -> {
-                Jutsu jutsu = new Jutsu(jutsuDTO.damage(), jutsuDTO.chakraConsumption());
-                character.addJutsu(jutsuName, jutsu);
-            });
+            requestDTO.jutsus().forEach((jutsuDTO -> {
+                Jutsu jutsu = new Jutsu(
+                        jutsuDTO.name(),
+                        jutsuDTO.damage(),
+                        jutsuDTO.chakraConsumption()
+                );
+                character.addJutsu(jutsu);
+            }));
         }
 
         return mapper.toDTO(repository.save(character));
@@ -49,7 +59,7 @@ public class CharacterService implements CharacterServiceInterface {
     @Override
     public List<CharacterResponseDTO> listCharacter() {
         var listCharacter = repository.findAll();
-        return mapper.toDTO(listCharacter);
+        return mapper.toDTOCharacters(listCharacter);
     }
 
     @Override
@@ -59,13 +69,10 @@ public class CharacterService implements CharacterServiceInterface {
 
     @Override
     public List<CharacterResponseDTO> listCharactersByType(NinjaType ninjaType) {
-        return repository.findAll().stream().filter(character -> {
-            return switch (ninjaType) {
-                case NINJUTSU -> character instanceof NinjutsuNinja;
-                case TAIJUTSU -> character instanceof TaijutsuNinja;
-                case INVALID_TYPE -> throw new IllegalArgumentException("Ninja type is invalid");
-            };
-        }).map(mapper::toDTO).toList();
+        return repository.findAll().stream()
+                .filter(character -> character.getType().equals(ninjaType))
+                .map(mapper::toDTO)
+                .toList();
     }
 
     @Override

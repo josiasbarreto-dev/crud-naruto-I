@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "character")
-@Table(name = "character")
+@Table(name = "characters")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ninjaType")
 @Getter
@@ -23,10 +23,8 @@ public abstract class Character{
     @Column(unique = true)
     protected String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "jutsus", joinColumns = @JoinColumn(name = "character_id"))
-    @MapKeyColumn(name = "jutsu_name")
-    protected Map<String, Jutsu> jutsus  = new HashMap<>();
+    @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
+    protected List<Jutsu> jutsus = new ArrayList<>();
     protected Integer chakra = 100;
     protected Integer life;
 
@@ -35,12 +33,15 @@ public abstract class Character{
         this.life = life;
     }
 
-    public boolean addJutsu(String name, Jutsu jutsu){
-        if (jutsus.putIfAbsent(name, jutsu) == null) {
-            System.out.println("Jutsu '" + name + "' added successfully!");
+    public boolean addJutsu(Jutsu jutsu){
+        boolean exists = jutsus.stream().anyMatch(existingJutsu -> existingJutsu.getName().equals(jutsu.getName()));
+        if (!exists) {
+            jutsu.setCharacter(this);
+            jutsus.add(jutsu);
+            System.out.println("Jutsu '" + jutsu.getName() + "' added to " + name + ".");
             return true;
         } else {
-            System.out.println("Jutsu '" + name + "' already exists in the map. Not added.");
+            System.out.println("Jutsu '" + jutsu.getName() + "' already exists in the character's jutsus. Not added.");
             return false;
         }
     }
@@ -52,7 +53,15 @@ public abstract class Character{
         }
     }
 
+    public void setChakra(Integer chakra) {
+        if (chakra < 0) {
+            throw new IllegalArgumentException("Chakra cannot be negative.");
+        }
+        this.chakra += chakra;
+    }
+
     public abstract void useJutsu(String jutsuName, Character adversaryNinja);
     public abstract void dodge(Jutsu jutsu);
+    public abstract NinjaType getType();
 }
 
