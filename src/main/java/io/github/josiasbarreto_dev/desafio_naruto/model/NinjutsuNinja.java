@@ -12,12 +12,18 @@ import java.util.Random;
 @DiscriminatorValue("NINJUTSU")
 @NoArgsConstructor
 public class NinjutsuNinja extends Character {
+    private Random random = new Random();
+
+    public void setRandom(Random random) {
+        this.random = random;
+    }
+
     public NinjutsuNinja(String name, Integer life) {
         super(name, life);
     }
 
     @Override
-    public void useJutsu(String jutsuName, Character adversaryNinja){
+    public void useJutsu(String jutsuName, Character adversaryNinja) {
         Jutsu jutsu = jutsus.stream()
                 .filter(j -> j.getName().equalsIgnoreCase(jutsuName))
                 .findFirst()
@@ -38,7 +44,7 @@ public class NinjutsuNinja extends Character {
 
     @Override
     public void dodge(Jutsu jutsu) {
-        if (new Random().nextInt(100) < 60) {
+        if (random.nextInt(100) < 60) {
             System.out.println(name + " used substitution and avoided the damage.");
         } else {
             loseLife(jutsu.getDamage());
